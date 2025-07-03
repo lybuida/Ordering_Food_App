@@ -1,0 +1,45 @@
+<!-- Phần tiêu đề hệ thống -->
+<div class="mt-0 p-4 text-white text-center rounded shadow"
+     style="background: linear-gradient(90deg, #007bff, #0056b3);">
+    <span class="h2"><i class="fas fa-school me-2"></i>Hệ Thống Đặt Món Ăn Trực Tuyến</span>
+</div>
+
+<!-- Navbar -->
+{% if current_user.is_authenticated %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container">
+        <div class="d-flex flex-grow-1">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/"><i class="fas fa-home me-1"></i>Trang chủ</a></li>
+
+                {% if current_user.role == Role.ADMIN %}
+                <li class="nav-item"><a class="nav-link" href="/admin/subjectview/">Quản lý môn học</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/statsview/">Thống kê báo cáo</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/changerule/">Thay đổi quy định</a></li>
+
+                {% elif current_user.role == Role.TEACHER %}
+                <li class="nav-item"><a class="nav-link" href="/teacher/my_classes">Xem danh sách lớp dạy</a></li>
+                <li class="nav-item"><a class="nav-link" href="/teacher/select_for_grading">Nhập điểm</a></li>
+                <li class="nav-item"><a class="nav-link" href="/teacher/avg_scores">Xuất điểm</a></li>
+
+                {% elif current_user.role == Role.STAFF %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('staff.AddStudent') }}">Tiếp nhận học sinh</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('staff.CreateClassList') }}">Xem danh sách lớp</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('staff.AdjustClass') }}">Điều chỉnh lớp học sinh</a></li>
+
+                {% endif %}
+
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if current_user.is_authenticated %}
+        <div class="d-flex align-items-center">
+            <span class="me-3">👋 Xin chào, <strong>{{ current_user.username }}</strong></span>
+            <a class="btn btn-outline-danger btn-sm" href="/logout">
+                <i class="fas fa-sign-out-alt me-1"></i>Đăng xuất
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</nav>
