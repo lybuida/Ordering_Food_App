@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "layout/base.html" %}
+{% block title %}Trang chủ - Admin{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h3>⚙️ Xin chào {{ user.name }}</h3>
+    <p>Đây là trang quản trị hệ thống.</p>
+</div>
+{% endblock %}
 
-</body>
-</html>

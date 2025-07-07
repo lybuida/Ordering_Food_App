@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends "layout/base.html" %}
+{% block title %}Trang Chủ - Customer{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h3>👋 Xin chào {{ user.name }}</h3>
+    <p>Hãy chọn nhà hàng và món ăn bạn yêu thích!</p>
+</div>
+{% endblock %}

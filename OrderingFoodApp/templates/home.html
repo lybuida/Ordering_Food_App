@@ -1,0 +1,13 @@
+{% extends 'layout/base.html' %}
+{% block title %}Hệ Thống Đặt Món Ăn Trực Tuyến{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    {% if user %}
+    <h3>👋 Xin chào {{ user.name }}</h3>
+    {% else %}
+    <div class="text-center mb-4">
+        <h2>🍽️ Chào mừng bạn đến với hệ thống đặt món ăn trực tuyến</h2>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
