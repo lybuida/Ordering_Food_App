@@ -1,0 +1,33 @@
+{% extends 'layout/base.html' %}
+{% block title %}Hệ Thống Đặt Món Ăn Trực Tuyến{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Đăng nhập</h2>
+
+  <!-- Hiển thị flash message chỉ khi có lỗi -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        {% if category == 'danger' %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" autocomplete="off">
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" name="email" id="email" class="form-control" required value="">
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Mật khẩu</label>
+      <input type="password" name="password" id="password" class="form-control" required value="">
+    </div>
+    <button type="submit" class="btn btn-primary">Đăng nhập</button>
+  </form>
+</div>
+{% endblock %}

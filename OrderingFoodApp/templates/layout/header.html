@@ -1,45 +1,54 @@
 <!-- Phần tiêu đề hệ thống -->
 <div class="mt-0 p-4 text-white text-center rounded shadow"
-     style="background: linear-gradient(90deg, #007bff, #0056b3);">
-    <span class="h2"><i class="fas fa-school me-2"></i>Hệ Thống Đặt Món Ăn Trực Tuyến</span>
+     style="background: linear-gradient(90deg, #28a745, #218838);">
+    <span class="h2"><i class="fas fa-utensils me-2"></i>Hệ Thống Đặt Món Ăn Trực Tuyến</span>
 </div>
 
 <!-- Navbar -->
 {% if current_user.is_authenticated %}
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container">
-        <div class="d-flex flex-grow-1">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="/"><i class="fas fa-home me-1"></i>Trang chủ</a></li>
+        <a class="navbar-brand" href="/"><i class="fas fa-home me-1"></i>Trang chủ</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-                {% if current_user.role == Role.ADMIN %}
-                <li class="nav-item"><a class="nav-link" href="/admin/subjectview/">Quản lý môn học</a></li>
-                <li class="nav-item"><a class="nav-link" href="/admin/statsview/">Thống kê báo cáo</a></li>
-                <li class="nav-item"><a class="nav-link" href="/admin/changerule/">Thay đổi quy định</a></li>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                {% if current_user.role == UserRole.ADMIN %}
+                <li class="nav-item"><a class="nav-link" href="/admin/users"><i class="fas fa-users-cog me-1"></i>Quản lý người dùng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/restaurants"><i class="fas fa-store me-1"></i>Quản lý nhà hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/admin/statistics"><i class="fas fa-chart-line me-1"></i>Thống kê</a></li>
 
-                {% elif current_user.role == Role.TEACHER %}
-                <li class="nav-item"><a class="nav-link" href="/teacher/my_classes">Xem danh sách lớp dạy</a></li>
-                <li class="nav-item"><a class="nav-link" href="/teacher/select_for_grading">Nhập điểm</a></li>
-                <li class="nav-item"><a class="nav-link" href="/teacher/avg_scores">Xuất điểm</a></li>
+                {% elif current_user.role == UserRole.OWNER %}
+                <li class="nav-item"><a class="nav-link" href="/owner/restaurants"><i class="fas fa-store me-1"></i>Nhà hàng của tôi</a></li>
+                <li class="nav-item"><a class="nav-link" href="/owner/orders"><i class="fas fa-receipt me-1"></i>Đơn hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/owner/reviews"><i class="fas fa-comments me-1"></i>Đánh giá</a></li>
 
-                {% elif current_user.role == Role.STAFF %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('staff.AddStudent') }}">Tiếp nhận học sinh</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('staff.CreateClassList') }}">Xem danh sách lớp</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('staff.AdjustClass') }}">Điều chỉnh lớp học sinh</a></li>
-
+                {% elif current_user.role == UserRole.CUSTOMER %}
+                <li class="nav-item"><a class="nav-link" href="/restaurants"><i class="fas fa-store-alt me-1"></i>Nhà hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/cart"><i class="fas fa-shopping-cart me-1"></i>Giỏ hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/orders"><i class="fas fa-history me-1"></i>Lịch sử đơn</a></li>
                 {% endif %}
-
             </ul>
+            <div class="d-flex align-items-center">
+                <span class="me-3">👋 Xin chào, <strong>{{ current_user.name }}</strong></span>
+                <a class="btn btn-outline-danger btn-sm" href="/auth/logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>Đăng xuất
+                </a>
+            </div>
         </div>
-        {% endif %}
-
-        {% if current_user.is_authenticated %}
-        <div class="d-flex align-items-center">
-            <span class="me-3">👋 Xin chào, <strong>{{ current_user.username }}</strong></span>
-            <a class="btn btn-outline-danger btn-sm" href="/logout">
-                <i class="fas fa-sign-out-alt me-1"></i>Đăng xuất
-            </a>
-        </div>
-        {% endif %}
     </div>
 </nav>
+{% else %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/"><i class="fas fa-home me-1"></i>Trang chủ</a>
+        <div class="d-flex">
+            <a class="btn btn-outline-light btn-sm me-2" href="/auth/login"><i class="fas fa-sign-in-alt me-1"></i>Đăng nhập</a>
+            <a class="btn btn-success btn-sm" href="/auth/register"><i class="fas fa-user-plus me-1"></i>Đăng ký</a>
+        </div>
+    </div>
+</nav>
+{% endif %}
