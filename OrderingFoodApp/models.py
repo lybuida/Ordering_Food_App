@@ -91,7 +91,6 @@ class Restaurant(db.Model):
     phone = Column(String(50))
     latitude = Column(Float)
     longitude = Column(Float)
-    image_url = Column(String(255))  # Thêm dòng này
     created_at = Column(DateTime, default=datetime.utcnow)
 
     menu_items = relationship('MenuItem', backref='restaurant', lazy=True)
