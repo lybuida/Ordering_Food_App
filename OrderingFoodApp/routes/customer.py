@@ -9,5 +9,5 @@ customer_bp = Blueprint('customer', __name__, url_prefix='/customer')
 @login_required
 def index():
     customer = User.query.filter_by(id=current_user.id).first()
-    return render_template('customer/index.html', user=customer)
+    return render_template('customer/index1.html', user=customer)
 

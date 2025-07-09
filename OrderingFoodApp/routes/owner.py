@@ -9,4 +9,4 @@ owner_bp = Blueprint('owner', __name__, url_prefix='/owner')
 @login_required
 def index():
     owner = User.query.filter_by(id=current_user.id).first()
-    return render_template('owner/index.html', user=owner)
+    return render_template('owner/index1.html', user=owner)
