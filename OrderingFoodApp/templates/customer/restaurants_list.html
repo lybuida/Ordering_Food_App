@@ -107,6 +107,7 @@
                             <h5 class="card-title fw-bold">{{ menu_item.name }}</h5>
                             <p class="card-text text-muted small mb-3">{{ menu_item.description|truncate(100) }}</p>
 
+
                             <!-- Hiển thị nhà hàng -->
                             <div class="d-flex align-items-center mt-auto">
                                 <div class="restaurant-avatar">
@@ -118,8 +119,15 @@
                                 </div>
                                 <a href="{{ url_for('customer.restaurant_detail', restaurant_id=menu_item.restaurant.id) }}"
                                    class="text-decoration-none text-dark fw-medium ms-2">{{ menu_item.restaurant.name
-                                    }}</a>
+                                    }}
+                                </a>
                             </div>
+
+                            <!-- Nút xem chi tiết món ăn -->
+                            <a href="{{ url_for('customer.view_menu_item', menu_item_id=menu_item.id) }}"
+                               class="btn btn-outline-primary w-100 mt-2">
+                                <i class="fas fa-eye me-2"></i>Xem chi tiết
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -163,9 +171,11 @@
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 py-2 px-3">
-                    <a href="#" class="btn btn-outline-primary w-100">
+                    <a href="{{ url_for('customer.restaurant_detail', restaurant_id=restaurant.id) }}"
+                       class="btn btn-outline-primary w-100">
                         <i class="fas fa-eye me-2"></i>Xem chi tiết
                     </a>
+
                 </div>
             </div>
         </div>
@@ -477,5 +487,6 @@
             justify-content: flex-start;
         }
     }
+
 </style>
 {% endblock %}

@@ -41,7 +41,7 @@ def get_menu_items_by_name(search_query, page, per_page=12):
     # Tạo danh sách kết quả với đầy đủ thông tin
     results = []
     for item in menu_items.items:
-        # item[0] là MenuItem, item[1] là Restaurant
+        # item[0] là MenuItem, item[customer] là Restaurant
         menu_item = item[0]
         menu_item.restaurant = item[1]  # Gán nhà hàng cho món ăn
         results.append(menu_item)
@@ -103,3 +103,4 @@ def get_all_restaurants(page, per_page=12):
         'per_page': per_page,
         'total': restaurants.total
     }
+

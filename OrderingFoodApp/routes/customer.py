@@ -14,15 +14,6 @@ def index():
     return render_template('customer/index.html', user=customer)
 
 
-@customer_bp.route('/restaurant/<int:restaurant_id>')
-@login_required
-def restaurant_detail(restaurant_id):
-    restaurant = Restaurant.query.get_or_404(restaurant_id)
-    menu_items = MenuItem.query.filter_by(restaurant_id=restaurant_id).all()
-    return render_template('customer/restaurant_detail.html',
-                         restaurant=restaurant,
-                         menu_items=menu_items)
-
 @customer_bp.route('/restaurants_list')
 @login_required
 def restaurants_list():
@@ -93,3 +84,23 @@ def restaurants_list():
                                search_type=search_type,
                                selected_category_id=category_id,
                                pagination=pagination_info)
+
+
+#Xem menu nhà hàng
+@customer_bp.route('/restaurant/<int:restaurant_id>')
+@login_required
+def restaurant_detail(restaurant_id):
+    restaurant = Restaurant.query.get_or_404(restaurant_id)
+    menu_items = MenuItem.query.filter_by(restaurant_id=restaurant_id).all()
+    return render_template('customer/restaurant_detail.html',
+                         restaurant=restaurant,
+                         menu_items=menu_items)
+
+# Xem chi tiết món ăn
+@customer_bp.route('/menu_item/<int:menu_item_id>')
+@login_required
+def view_menu_item(menu_item_id):
+    menu_item = MenuItem.query.get_or_404(menu_item_id)
+    return render_template('customer/menu_item_detail.html', menu_item=menu_item)
+
+
