@@ -104,7 +104,7 @@ class MenuCategory(db.Model):
     __tablename__ = 'menu_categories'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
-
+    image_url = Column(String(255))  # Thêm trường này
     menu_items = relationship('MenuItem', backref='category', lazy=True)
 
 

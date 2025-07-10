@@ -45,10 +45,15 @@ def seed_data():
     db.session.commit()
 
     # ========== DANH MỤC MÓN ĂN ==========
-    category_names = ["Khai Vị", "Món Chính", "Tráng Miệng", "Đồ Uống"]
+    category_names = [
+    {"name": "Khai Vị", "image_url": "https://img.lovepik.com/png/20231111/appetizer-clipart-platter-of-food-is-arranged-on-top-cartoon_558150_wh1200.png"},
+    {"name": "Món Chính", "image_url": "https://png.pngtree.com/png-vector/20240528/ourlarge/pngtree-a-chinese-style-cuisine-looking-beautiful-png-image_12504550.png"},
+    {"name": "Tráng Miệng", "image_url": "https://img.lovepik.com/png/20231107/Piece-of-cake-cartoon-pastry-illustration-strawberry-snack_520860_wh860.png"},
+    {"name": "Đồ Uống", "image_url": "https://img.lovepik.com/free-png/20210927/lovepik-drink-png-image_401579146_wh1200.png"}
+]
     categories = []
-    for name in category_names:
-        cat = MenuCategory(name=name)
+    for data in category_names:
+        cat = MenuCategory(name=data["name"], image_url=data["image_url"])
         db.session.add(cat)
         db.session.flush()
         categories.append(cat)
@@ -66,7 +71,7 @@ def seed_data():
     menu_items = []
 
     for owner in owners:
-        for _ in range(random.randint(2, 3)):  # Mỗi chủ 2-3 nhà hàng
+        for _ in range(random.randint(2, 6)):  # Mỗi chủ 2-3 nhà hàng
             rest_type = random.choice(restaurant_types)
             restaurant = Restaurant(
                 owner_id=owner.id,
