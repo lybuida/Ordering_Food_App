@@ -1,0 +1,481 @@
+{% extends "layout/base.html" %}
+{% block title %}Nhà Hàng{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <!-- Phần tìm kiếm được thiết kế lại -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <form action="{{ url_for('customer.restaurants_list') }}" method="GET">
+                <div class="d-flex flex-wrap align-items-center gap-3 search-container">
+                    <!-- Ô nhập tìm kiếm -->
+                    <div class="flex-grow-1 position-relative">
+                        <input type="text" class="form-control search-input" name="search"
+                               placeholder="Tìm kiếm nhà hàng hoặc món ăn..." value="{{ search_query }}">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+
+                    <!-- Nút tìm kiếm -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-gradient-primary search-btn" type="submit" name="search_type"
+                                value="restaurants">
+                            <i class="fas fa-utensils me-2"></i> Tìm nhà hàng
+                        </button>
+                        <button class="btn btn-gradient-success search-btn" type="submit" name="search_type"
+                                value="dishes">
+                            <i class="fas fa-hamburger me-2"></i> Tìm món ăn
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Các danh mục món ăn thiết kế lại -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-wrap justify-content-center gap-3 category-container">
+                <!-- Danh mục "Tất cả" -->
+                <div class="text-center">
+                    <a href="{{ url_for('customer.restaurants_list') }}"
+                       class="d-block text-decoration-none {% if not selected_category_id %}active-category{% endif %}">
+                        <div class="category-card rounded-3 p-3 shadow-sm">
+                            <div class="category-icon rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <span class="small fw-medium">Tất cả</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Các danh mục khác -->
+                {% for category in categories %}
+                <div class="text-center">
+                    <a href="{{ url_for('customer.restaurants_list', category_id=category.id) }}"
+                       class="d-block text-decoration-none {% if selected_category_id == category.id %}active-category{% endif %}">
+                        <div class="category-card rounded-3 p-3 shadow-sm">
+                            <div class="category-icon rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center">
+                                <div class="category-image">
+                                    <img src="{{ category.image_url }}"
+                                         alt="{{ category.name }}"
+                                         class="img-fluid"
+                                         onerror="this.onerror=null;this.src='https://via.placeholder.com/41?text=Ảnh+DM'">
+                                </div>
+                            </div>
+                            <span class="small fw-medium">{{ category.name }}</span>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tiêu đề -->
+    <h2 class="mb-4 fw-bold gradient-text">
+        {% if search_type == 'dishes' %}
+        Kết quả tìm kiếm món ăn cho "{{ search_query }}"
+        {% elif search_query %}
+        Kết quả tìm kiếm nhà hàng cho "{{ search_query }}"
+        {% elif selected_category_id %}
+        Danh mục: {{ categories|selectattr('id', 'equalto', selected_category_id)|map(attribute='name')|first }}
+        {% else %}
+        Danh sách nhà hàng
+        {% endif %}
+    </h2>
+
+    <!-- Phần hiển thị kết quả -->
+    {% if search_type == 'dishes' %}
+    <!-- Hiển thị danh sách món ăn -->
+    <div class="row" id="dishes-container">
+        {% for menu_item in menu_items %}
+        <div class="col-xl-6 col-lg-6 col-md-6 mb-4 dish-item">
+            <div class="card h-100 dish-card border-0 shadow-hover">
+                <div class="row g-0">
+                    <div class="col-md-4 dish-image">
+                        <div class="position-relative h-100">
+                            <img src="{{ menu_item.image_url }}" class="img-fluid rounded-start h-100 w-100"
+                                 alt="{{ menu_item.name }}"
+                                 style="object-fit: cover;"
+                                 onerror="this.onerror=null;this.src='https://via.placeholder.com/150?text=Ảnh+món+ăn'">
+                            <div class="price-badge bg-primary text-white px-2 py-1 rounded-pill">
+                                {{ "{:,.0f} đ".format(menu_item.price) }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body py-3">
+                            <h5 class="card-title fw-bold">{{ menu_item.name }}</h5>
+                            <p class="card-text text-muted small mb-3">{{ menu_item.description|truncate(100) }}</p>
+
+                            <!-- Hiển thị nhà hàng -->
+                            <div class="d-flex align-items-center mt-auto">
+                                <div class="restaurant-avatar">
+                                    <img src="{{ menu_item.restaurant.image_url }}"
+                                         class="rounded-circle"
+                                         alt="{{ menu_item.restaurant.name }}"
+                                         style="width: 30px; height: 30px; object-fit: cover;"
+                                         onerror="this.onerror=null;this.src='https://via.placeholder.com/30?text=NH'">
+                                </div>
+                                <a href="{{ url_for('customer.restaurant_detail', restaurant_id=menu_item.restaurant.id) }}"
+                                   class="text-decoration-none text-dark fw-medium ms-2">{{ menu_item.restaurant.name
+                                    }}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-utensils fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Không tìm thấy món ăn nào</h5>
+                    <p class="text-muted mb-0">Hãy thử từ khóa khác hoặc chọn danh mục khác</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Hiển thị danh sách nhà hàng -->
+    <div class="row" id="restaurants-container">
+        {% for restaurant in restaurants %}
+        <div class="col-xl-3 col-lg-4 col-md-6 mb-4 restaurant-item">
+            <div class="card h-100 restaurant-card border-0 shadow-hover">
+                <div class="restaurant-image position-relative">
+                    <img src="{{ restaurant.image_url }}" class="card-img-top" alt="{{ restaurant.name }}"
+                         style="height: 180px; object-fit: cover;"
+                         onerror="this.onerror=null;this.src='https://via.placeholder.com/400x300?text=Ảnh+nhà+hàng';">
+                </div>
+                <div class="card-body p-3">
+                    <!-- Sửa tên nhà hàng: thêm class text-truncate và title để hiển thị tooltip -->
+                    <h5 class="card-title mb-2 fw-bold text-truncate" title="{{ restaurant.name }}">
+                        {{ restaurant.name }}
+                    </h5>
+
+                    <!-- Hiển thị điểm số sao màu vàng -->
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        <div class="star-rating d-flex align-items-center gap-1">
+                            <i class="fas fa-star text-warning"></i>
+                            <span class="fw-bold">{{ restaurant.avg_rating }}/5.0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 py-2 px-3">
+                    <a href="#" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-eye me-2"></i>Xem chi tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-store-alt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Không tìm thấy nhà hàng nào</h5>
+                    <p class="text-muted mb-0">Hãy thử từ khóa khác hoặc chọn danh mục khác</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Phân trang -->
+    {% if pagination.total_pages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if pagination.page > 1 %}
+            <li class="page-item">
+                <a class="page-link rounded-pill mx-1"
+                   href="{{ url_for('customer.restaurants_list', page=pagination.page-1, search=search_query, category_id=selected_category_id) }}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for p in range(pagination.start_page, pagination.end_page+1) %}
+            {% if p == pagination.page %}
+            <li class="page-item active">
+                <span class="page-link rounded-pill mx-1">{{ p }}</span>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link rounded-pill mx-1"
+                   href="{{ url_for('customer.restaurants_list', page=p, search=search_query, category_id=selected_category_id) }}">
+                    {{ p }}
+                </a>
+            </li>
+            {% endif %}
+            {% endfor %}
+
+            {% if pagination.page < pagination.total_pages %}
+            <li class="page-item">
+                <a class="page-link rounded-pill mx-1"
+                   href="{{ url_for('customer.restaurants_list', page=pagination.page+1, search=search_query, category_id=selected_category_id) }}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --success-color: #4cc9f0;
+        --light-bg: #f8f9fa;
+        --dark-text: #2b2d42;
+        --light-text: #8d99ae;
+        --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        --card-shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+    body {
+        background-color: #f8f9fc;
+        color: var(--dark-text);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+        max-width: 1200px;
+    }
+
+    /* Search section */
+    .search-container {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .search-input {
+        border: 2px solid #e9ecef;
+        border-radius: 50px;
+        padding: 12px 20px 12px 45px;
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+
+    .search-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--light-text);
+    }
+
+    .search-btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+        border-radius: 50px;
+        transition: var(--transition);
+        font-weight: 500;
+        border: none;
+        min-width: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-gradient-primary {
+        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        color: white;
+    }
+
+    .btn-gradient-success {
+        background: linear-gradient(to right, #2ecc71, #1abc9c);
+        color: white;
+    }
+
+    .search-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Category section - ĐÃ SỬA LỖI HÌNH ẢNH */
+    .category-container {
+        background: white;
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: var(--card-shadow);
+    }
+
+    .category-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        transition: var(--transition);
+        min-width: 110px;
+    }
+
+    .category-card:hover, .active-category .category-card {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        transform: translateY(-5px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .category-icon {
+        width: 60px;
+        height: 60px;
+        background: transparent;
+        border: none;
+        transition: var(--transition);
+    }
+
+    .category-image {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .category-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    /* Sửa lỗi hình ảnh bị bôi trắng */
+    .category-card:hover .category-image img,
+    .active-category .category-card .category-image img {
+        /* Đã loại bỏ filter làm trắng ảnh */
+        transform: scale(1.1);
+    }
+
+    .category-card:hover i,
+    .active-category .category-card i,
+    .category-card:hover span,
+    .active-category .category-card span {
+        color: white !important;
+    }
+
+    /* Title */
+    .gradient-text {
+        background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-block;
+    }
+
+    /* Cards */
+    .dish-card, .restaurant-card {
+        border-radius: 15px;
+        overflow: hidden;
+        transition: var(--transition);
+        background: white;
+        box-shadow: var(--card-shadow);
+    }
+
+    .shadow-hover:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    .restaurant-image {
+        overflow: hidden;
+        border-radius: 15px 15px 0 0;
+        position: relative;
+    }
+
+    .restaurant-image img {
+        transition: transform 0.5s ease;
+        height: 180px;
+        object-fit: cover;
+        width: 100%;
+    }
+
+    .restaurant-card:hover .restaurant-image img {
+        transform: scale(1.05);
+    }
+
+    .dish-image {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dish-image img {
+        transition: transform 0.5s ease;
+    }
+
+    .dish-card:hover .dish-image img {
+        transform: scale(1.1);
+    }
+
+    .price-badge {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    /* Cải tiến phần đánh giá sao - đã bỏ khung và đổi màu vàng */
+    .star-rating {
+        font-size: 1rem;
+        color: #ffc107; /* Màu vàng cho sao */
+        font-weight: bold;
+    }
+
+    .star-rating i {
+        margin-right: 3px;
+        text-shadow: 0 0 3px rgba(255, 193, 7, 0.5); /* Hiệu ứng lấp lánh */
+    }
+
+    /* Pagination */
+    .page-link {
+        border: none;
+        color: var(--dark-text);
+        font-weight: 500;
+        transition: var(--transition);
+    }
+
+    .page-link:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .page-item.active .page-link {
+        background: var(--primary-color);
+        border-color: transparent;
+    }
+
+    /* Empty state */
+    .card-body.text-center {
+        background: white;
+        border-radius: 15px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .search-container {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .search-btn {
+            width: 100%;
+        }
+
+        .category-container {
+            justify-content: flex-start;
+        }
+    }
+</style>
+{% endblock %}
