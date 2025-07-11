@@ -11,14 +11,99 @@ from flask import current_app
 
 owner_bp = Blueprint('owner', __name__, url_prefix='/owner')
 
+##HOME
+# @owner_bp.route('/')
+# @login_required
+# def index():
+#     owner = User.query.filter_by(id=current_user.id).first()
+#     return render_template('owner/index.html', user=owner)
+####HOME
 
+from sqlalchemy import func
+# owner.py (phần route index)
 @owner_bp.route('/')
 @login_required
 def index():
+    # Lấy thông tin chủ nhà hàng
     owner = User.query.filter_by(id=current_user.id).first()
-    return render_template('owner/index.html', user=owner)
 
+    # Lấy ngày hiện tại
+    today = datetime.now().date()
 
+    # Đếm số đơn hôm nay
+    orders_today = db.session.query(Order).join(Restaurant).filter(
+        Restaurant.owner_id == current_user.id,
+        func.date(Order.created_at) == today
+    ).count()
+
+    # Doanh thu hôm nay
+    revenue_today = db.session.query(func.sum(Order.total_amount)).join(Restaurant).filter(
+        Restaurant.owner_id == current_user.id,
+        func.date(Order.created_at) == today,
+        Order.status != OrderStatus.CANCELLED
+    ).scalar()
+    revenue_today = revenue_today or 0  # Tránh None
+
+    # Đơn chờ xác nhận
+    pending_orders = db.session.query(Order).join(Restaurant).filter(
+        Restaurant.owner_id == current_user.id,
+        Order.status == OrderStatus.PENDING
+    ).count()
+
+    # Đơn mới nhất (5 đơn)
+    new_orders = db.session.query(Order).join(Restaurant).filter(
+        Restaurant.owner_id == current_user.id,
+        Order.status == OrderStatus.PENDING
+    ).order_by(Order.created_at.desc()).limit(5).all()
+
+    # Đánh giá mới (2 đánh giá)
+    recent_reviews = db.session.query(Review).join(Restaurant).filter(
+        Restaurant.owner_id == current_user.id
+    ).order_by(Review.created_at.desc()).limit(2).all()
+
+    # Thông tin nhà hàng (lấy nhà hàng đầu tiên)
+    restaurant = db.session.query(Restaurant).filter(
+        Restaurant.owner_id == current_user.id
+    ).first()
+
+    # Chuẩn bị danh sách đơn hàng mới cho template
+    formatted_new_orders = []
+    for order in new_orders:
+        customer = User.query.get(order.customer_id)
+        item_count = db.session.query(OrderItem).filter_by(order_id=order.id).count()
+
+        formatted_new_orders.append({
+            'id': order.id,
+            'code': f"#{order.id:06d}",
+            'time': order.created_at.strftime('%H:%M %d/%m'),
+            'amount': order.total_amount,
+            'item_count': item_count,
+            'status': order.status.value
+        })
+
+    # Chuẩn bị danh sách đánh giá cho template
+    formatted_reviews = []
+    for review in recent_reviews:
+        customer = User.query.get(review.customer_id)
+
+        formatted_reviews.append({
+            'id': review.id,
+            'customer_name': customer.name,
+            'rating': review.rating,
+            'comment': review.comment,
+            'created_at': review.created_at.strftime('%d/%m/%Y')
+        })
+
+    return render_template('owner/index.html',
+                           user=owner,
+                           orders_today=orders_today,
+                           revenue_today=revenue_today,
+                           pending_orders=pending_orders,
+                           new_orders=formatted_new_orders,
+                           recent_reviews=formatted_reviews,
+                           restaurant=restaurant)
+
+##RES
 @owner_bp.route('/restaurants')
 def owner_restaurants():
     return render_template('owner/restaurants.html')
@@ -323,10 +408,8 @@ def update_order_status(order_id):
     else:
         return jsonify({'success': False, 'message': 'Không thể chuyển sang trạng thái này'})
 
-
+##33##
 @owner_bp.route('/statistics')
 def owner_statistics():
     return render_template('owner/statistics.html')
-
-
 
