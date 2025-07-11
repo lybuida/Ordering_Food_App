@@ -40,4 +40,20 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', addClearButton);
         addClearButton(); // Khởi tạo ban đầu
     }
+
+    // Xử lý khi nhấn nút thay đổi địa chỉ
+    const changeAddressBtn = document.getElementById('change-address-btn');
+    if (changeAddressBtn) {
+        changeAddressBtn.addEventListener('click', function() {
+            // Modal đã được xử lý trong HTML
+        });
+    }
+
+    // Xử lý khi lưu địa chỉ mới
+    const saveAddressBtn = document.getElementById('save-address-btn');
+    if (saveAddressBtn) {
+        saveAddressBtn.addEventListener('click', function() {
+            // Đã xử lý trong HTML
+        });
+    }
 });

@@ -11,9 +11,8 @@
                         <i class="fas fa-bolt me-1"></i>Hành động nhanh
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="quickActions">
-                        <li><a class="dropdown-item" href="/owner/restaurants/edit"><i class="fas fa-edit me-1"></i>Cập nhật thông tin nhà hàng</a></li>
-                        <li><a class="dropdown-item" href="/owner/menu/add"><i class="fas fa-plus-circle me-1"></i>Thêm món ăn mới</a></li>
-                        <li><a class="dropdown-item" href="/owner/promotions/create"><i class="fas fa-tag me-1"></i>Tạo khuyến mãi</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('owner.owner_restaurants') }}"><i class="fas fa-edit me-1"></i>Cập nhật thông tin nhà hàng</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('owner.add_menu_item') }}"><i class="fas fa-plus-circle me-1"></i>Thêm món ăn mới</a></li>
                     </ul>
                 </div>
             </div>
@@ -35,24 +34,24 @@
                     <div class="row text-center">
                         <div class="col-md-4 mb-3">
                             <div class="p-3 border rounded bg-light">
-                                <h5 class="text-success">12</h5>
+                                <h5 class="text-success">{{ orders_today }}</h5>
                                 <small class="text-muted">Đơn hàng hôm nay</small>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="p-3 border rounded bg-light">
-                                <h5 class="text-primary">5,200,000₫</h5>
+                                <h5 class="text-primary">{{ "{:,.0f}₫".format(revenue_today) }}</h5>
                                 <small class="text-muted">Doanh thu hôm nay</small>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="p-3 border rounded bg-light">
-                                <h5 class="text-warning">3</h5>
+                                <h5 class="text-warning">{{ pending_orders }}</h5>
                                 <small class="text-muted">Đơn chờ xác nhận</small>
                             </div>
                         </div>
                     </div>
-                    <a href="/owner/statistics" class="btn btn-outline-primary btn-sm mt-2"><i class="fas fa-chart-pie me-1"></i>Xem thống kê chi tiết</a>
+                    <a href="{{ url_for('owner.owner_statistics') }}" class="btn btn-outline-primary btn-sm mt-2"><i class="fas fa-chart-pie me-1"></i>Xem thống kê chi tiết</a>
                 </div>
             </div>
         </div>
@@ -65,23 +64,22 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        <a href="/owner/orders/123" class="list-group-item list-group-item-action">
+                        {% for order in new_orders %}
+                        <a href="{{ url_for('owner.order_details', order_id=order.id) }}" class="list-group-item list-group-item-action">
                             <div class="d-flex justify-content-between">
-                                <span>#ORD12345 - 12:30 10/07</span>
-                                <span class="badge bg-primary">350,000₫</span>
+                                <span>#{{ order.code }} - {{ order.time }}</span>
+                                <span class="badge bg-primary">{{ "{:,.0f}₫".format(order.amount) }}</span>
                             </div>
-                            <small class="text-muted">2 món ăn - Giao hàng</small>
+                            <small class="text-muted">{{ order.item_count }} món ăn</small>
                         </a>
-                        <a href="/owner/orders/124" class="list-group-item list-group-item-action">
-                            <div class="d-flex justify-content-between">
-                                <span>#ORD12346 - 11:45 10/07</span>
-                                <span class="badge bg-primary">220,000₫</span>
-                            </div>
-                            <small class="text-muted">3 món ăn - Tại quán</small>
-                        </a>
+                        {% else %}
+                        <div class="list-group-item">
+                            <div class="text-center text-muted py-2">Không có đơn hàng mới</div>
+                        </div>
+                        {% endfor %}
                     </div>
                     <div class="text-center p-2">
-                        <a href="/owner/orders" class="btn btn-outline-warning btn-sm"><i class="fas fa-receipt me-1"></i>Xem tất cả đơn hàng</a>
+                        <a href="{{ url_for('owner.owner_orders') }}" class="btn btn-outline-warning btn-sm"><i class="fas fa-receipt me-1"></i>Xem tất cả đơn hàng</a>
                     </div>
                 </div>
             </div>
@@ -97,35 +95,30 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        <a href="/owner/reviews/1" class="list-group-item list-group-item-action">
+                        {% for review in recent_reviews %}
+                        <a href="#" class="list-group-item list-group-item-action">
                             <div class="d-flex justify-content-between">
-                                <span>Nguyễn Văn A</span>
+                                <span>{{ review.customer_name }}</span>
                                 <div>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= review.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
                             </div>
-                            <small class="text-muted">"Món ăn ngon, phục vụ tốt"</small>
+                            <small class="text-muted">"{{ review.comment|truncate(50) }}"</small>
                         </a>
-                        <a href="/owner/reviews/2" class="list-group-item list-group-item-action">
-                            <div class="d-flex justify-content-between">
-                                <span>Trần Thị B</span>
-                                <div>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="fas fa-star text-warning"></i>
-                                    <i class="far fa-star text-warning"></i>
-                                </div>
-                            </div>
-                            <small class="text-muted">"Ngon nhưng hơi lâu"</small>
-                        </a>
+                        {% else %}
+                        <div class="list-group-item">
+                            <div class="text-center text-muted py-2">Không có đánh giá mới</div>
+                        </div>
+                        {% endfor %}
                     </div>
                     <div class="text-center p-2">
-                        <a href="/owner/reviews" class="btn btn-outline-info btn-sm"><i class="fas fa-comment-dots me-1"></i>Xem tất cả đánh giá</a>
+                        <a href="#" class="btn btn-outline-info btn-sm"><i class="fas fa-comment-dots me-1"></i>Xem tất cả đánh giá</a>
                     </div>
                 </div>
             </div>
@@ -138,17 +131,31 @@
                     <i class="fas fa-store me-2"></i>Nhà hàng của tôi
                 </div>
                 <div class="card-body">
+                    {% if restaurant %}
                     <div class="d-flex align-items-center mb-3">
-                        <img src="/static/images/restaurant-placeholder.jpg" class="rounded me-3" width="80" height="80" alt="Nhà hàng">
+                        <img src="{{ restaurant.image_url or '/static/images/restaurant-placeholder.jpg' }}"
+                             class="rounded me-3" width="80" height="80" alt="Nhà hàng">
                         <div>
-                            <h5>Nhà hàng ABC</h5>
-                            <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>123 Đường XYZ, Quận 1</small>
+                            <h5>{{ restaurant.name }}</h5>
+                            <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>{{ restaurant.address }}</small>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <a href="/owner/restaurants/edit" class="btn btn-outline-success btn-sm"><i class="fas fa-edit me-1"></i>Cập nhật thông tin</a>
-                        <a href="/owner/branches" class="btn btn-outline-secondary btn-sm"><i class="fas fa-code-branch me-1"></i>Chi nhánh (2)</a>
+                        <a href="{{ url_for('owner.owner_restaurants') }}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-edit me-1"></i>Cập nhật thông tin
+                        </a>
+                        <a href="{{ url_for('owner.owner_restaurants') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-code-branch me-1"></i>Chi nhánh
+                        </a>
                     </div>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <p>Bạn chưa có nhà hàng nào</p>
+                        <a href="{{ url_for('owner.owner_restaurants') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Thêm nhà hàng
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

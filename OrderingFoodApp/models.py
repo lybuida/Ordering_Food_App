@@ -190,6 +190,7 @@ class PromoCode(db.Model):
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)
     usage_limit = Column(Integer)
+    image_url = Column(String(255))
     created_at = Column(DateTime, default=datetime.utcnow)
 
     orders = relationship('Order', backref='promo_code', lazy=True)
