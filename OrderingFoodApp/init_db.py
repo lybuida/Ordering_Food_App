@@ -97,7 +97,7 @@ def seed_data():
                         name=f"{dish_name} {fake.word().capitalize()}",
                         description=f"Món {dish_name} yêu thích của giới trẻ và dân văn phòng.",
                         price=random.randint(30000, 120000),
-                        image_url="https://via.placeholder.com/150"
+                        image_url="https://food-cms.grab.com/compressed_webp/items/VNITE2025021904274992700/detail/menueditor_item_b63ce334b95042ed85f8e266b6724540_1739939243566377306.webp"
                     )
                     db.session.add(menu_item)
                     menu_items.append(menu_item)

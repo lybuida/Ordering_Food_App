@@ -28,9 +28,9 @@
                 <li class="nav-item"><a class="nav-link" href="/owner/reviews"><i class="fas fa-comments me-1"></i>Đánh giá</a></li>
 
                 {% elif current_user.role == UserRole.CUSTOMER %}
-                <li class="nav-item"><a class="nav-link" href="/restaurants"><i class="fas fa-store-alt me-1"></i>Nhà hàng</a></li>
-                <li class="nav-item"><a class="nav-link" href="/cart"><i class="fas fa-shopping-cart me-1"></i>Giỏ hàng</a></li>
-                <li class="nav-item"><a class="nav-link" href="/orders"><i class="fas fa-history me-1"></i>Lịch sử đơn</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/restaurants_list"><i class="fas fa-store-alt me-1"></i>Nhà hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/cart"><i class="fas fa-shopping-cart me-1"></i>Giỏ hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/orders"><i class="fas fa-history me-1"></i>Lịch sử đơn</a></li>
                 {% endif %}
             </ul>
             <div class="d-flex align-items-center">

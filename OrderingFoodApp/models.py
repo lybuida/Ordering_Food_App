@@ -201,7 +201,7 @@ class Review(db.Model):
     customer_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     restaurant_id = Column(Integer, ForeignKey('restaurants.id'), nullable=False)
     order_id = Column(Integer, ForeignKey('orders.id'))
-    rating = Column(Integer, nullable=False)  # 1–5
+    rating = Column(Integer, nullable=False)  # customer–5
     comment = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
