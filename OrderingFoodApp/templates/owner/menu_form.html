@@ -1,0 +1,87 @@
+{% extends "layout/base.html" %}
+{% block title %}{{ 'Chỉnh sửa' if menu_item else 'Thêm mới' }} Món Ăn{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="fas fa-utensils me-2"></i>{{ 'Chỉnh sửa' if menu_item else 'Thêm mới' }} Món Ăn</h3>
+        <a href="{{ url_for('owner.owner_menu') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Quay lại
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% if not menu_item %}
+                <div class="mb-3">
+                    <label for="restaurant_id" class="form-label">Nhà hàng</label>
+                    <select class="form-select" id="restaurant_id" name="restaurant_id" required>
+                        <option value="">Chọn nhà hàng</option>
+                        {% for restaurant in restaurants %}
+                            <option value="{{ restaurant.id }}">{{ restaurant.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label for="category_id" class="form-label">Danh mục</label>
+                    <select class="form-select" id="category_id" name="category_id" required>
+                        <option value="">Chọn danh mục</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}"
+                                {% if menu_item and menu_item.category_id == category.id %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Tên món ăn</label>
+                    <input type="text" class="form-control" id="name" name="name"
+                           value="{{ menu_item.name if menu_item }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Mô tả</label>
+                    <textarea class="form-control" id="description" name="description" rows="3">{{ menu_item.description if menu_item }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="price" class="form-label">Giá (VND)</label>
+                    <input type="number" class="form-control" id="price" name="price"
+                           value="{{ menu_item.price if menu_item }}" min="1000" step="1000" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="image" class="form-label">Hình ảnh</label>
+                    <input class="form-control" type="file" id="image" name="image" accept="image/*">
+                    {% if menu_item and menu_item.image_url %}
+                        <div class="mt-2">
+                            <img src="{{ menu_item.image_url }}" class="img-thumbnail" width="150" alt="Current image">
+                            <p class="text-muted small mt-1">Ảnh hiện tại</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
+                           {% if not menu_item or menu_item.is_active %}checked{% endif %}>
+                    <label class="form-check-label" for="is_active">Đang bán</label>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Lưu
+                    </button>
+                    <a href="{{ url_for('owner.owner_menu') }}" class="btn btn-outline-secondary">
+                        Hủy
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

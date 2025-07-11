@@ -4,47 +4,85 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="fas fa-utensils me-2"></i>Quản lý Thực Đơn</h3>
-        <a href="/owner/menu/add" class="btn btn-success">
+        <a href="{{ url_for('owner.add_menu_item', restaurant_id=current_restaurant_id) }}" class="btn btn-success">
             <i class="fas fa-plus-circle me-1"></i>Thêm món ăn
         </a>
     </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary text-white">
             <i class="fas fa-filter me-2"></i>Bộ lọc
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Danh mục</label>
-                    <select class="form-select">
-                        <option selected>Tất cả</option>
-                        <option>Khai vị</option>
-                        <option>Món chính</option>
-                        <option>Tráng miệng</option>
-                        <option>Đồ uống</option>
-                    </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Trạng thái</label>
-                    <select class="form-select">
-                        <option selected>Tất cả</option>
-                        <option>Đang bán</option>
-                        <option>Tạm ngừng</option>
-                    </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Tìm kiếm</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Tên món ăn...">
-                        <button class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
+            <form method="get" action="{{ url_for('owner.owner_menu') }}">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Nhà hàng</label>
+                        <select name="restaurant_id" class="form-select" onchange="this.form.submit()">
+                            {% for restaurant in restaurants %}
+                                <option value="{{ restaurant.id }}"
+                                    {% if current_restaurant_id == restaurant.id %}selected{% endif %}>
+                                    {{ restaurant.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Danh mục</label>
+                        <select name="category_id" class="form-select">
+                            <option value="all" {% if filter_values.category_id == 'all' %}selected{% endif %}>Tất cả</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}"
+                                    {% if filter_values.category_id|string == category.id|string %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select name="status" class="form-select">
+                            <option value="all" {% if filter_values.status == 'all' %}selected{% endif %}>Tất cả</option>
+                            <option value="active" {% if filter_values.status == 'active' %}selected{% endif %}>Đang bán</option>
+                            <option value="inactive" {% if filter_values.status == 'inactive' %}selected{% endif %}>Tạm ngừng</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Tìm kiếm</label>
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control"
+                                   placeholder="Tên món ăn..." value="{{ filter_values.search or '' }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+                <div class="row">
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter me-1"></i>Lọc
+                        </button>
+                        <a href="{{ url_for('owner.owner_menu') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-sync-alt me-1"></i>Reset
+                        </a>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
-
-    <div class="card shadow-sm">
+   <div class="card shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
@@ -59,48 +97,53 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for item in menu_items.items %}
                         <tr>
-                            <td><img src="/static/images/food1.jpg" class="img-thumbnail" width="60" height="60" alt="Món ăn"></td>
                             <td>
-                                <strong>Phở bò</strong>
-                                <p class="mb-0 text-muted small">Phở bò truyền thống</p>
+                                {% if item.image_url %}
+                                    <img src="{{ item.image_url }}" class="img-thumbnail" width="60" height="60" alt="{{ item.name }}">
+                                {% else %}
+                                    <img src="/static/images/default-food.jpg" class="img-thumbnail" width="60" height="60" alt="Default image">
+                                {% endif %}
                             </td>
-                            <td>Món chính</td>
-                            <td>50,000₫</td>
-                            <td><span class="badge bg-success">Đang bán</span></td>
                             <td>
-                                <a href="/owner/menu/1/edit" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
-                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                <strong>{{ item.name }}</strong>
+                                <p class="mb-0 text-muted small">{{ item.description|truncate(50) if item.description }}</p>
+                            </td>
+                            <td>{{ item.category.name }}</td>
+                            <td>{{ "{:,.0f}₫".format(item.price) }}</td>
+                            <td>
+                                {% if item.is_active %}
+                                    <span class="badge bg-success">Đang bán</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Tạm ngừng</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('owner.edit_menu_item', item_id=item.id) }}"
+                                   class="btn btn-sm btn-outline-primary me-1" title="Chỉnh sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-sm {% if item.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %} me-1 toggle-status-btn"
+                                        title="{% if item.is_active %}Tạm ngừng{% else %}Kích hoạt{% endif %}"
+                                        data-item-id="{{ item.id }}">
+                                    <i class="fas {% if item.is_active %}fa-pause{% else %}fa-play{% endif %}"></i>
+                                </button>
+                                <form action="{{ url_for('owner.delete_menu_item', item_id=item.id) }}"
+                                      method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            title="Xóa"
+                                            onclick="return confirm('Bạn có chắc chắn muốn xóa món ăn này?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
+                        {% else %}
                         <tr>
-                            <td><img src="/static/images/food2.jpg" class="img-thumbnail" width="60" height="60" alt="Món ăn"></td>
-                            <td>
-                                <strong>Gỏi cuốn</strong>
-                                <p class="mb-0 text-muted small">Gỏi cuốn tôm thịt</p>
-                            </td>
-                            <td>Khai vị</td>
-                            <td>35,000₫</td>
-                            <td><span class="badge bg-success">Đang bán</span></td>
-                            <td>
-                                <a href="/owner/menu/2/edit" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
-                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                            </td>
+                            <td colspan="6" class="text-center py-4">Không có món ăn nào</td>
                         </tr>
-                        <tr>
-                            <td><img src="/static/images/food3.jpg" class="img-thumbnail" width="60" height="60" alt="Món ăn"></td>
-                            <td>
-                                <strong>Bánh flan</strong>
-                                <p class="mb-0 text-muted small">Bánh flan caramel</p>
-                            </td>
-                            <td>Tráng miệng</td>
-                            <td>25,000₫</td>
-                            <td><span class="badge bg-warning">Tạm ngừng</span></td>
-                            <td>
-                                <a href="/owner/menu/3/edit" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></a>
-                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -108,18 +151,80 @@
         <div class="card-footer">
             <nav aria-label="Page navigation">
                 <ul class="pagination justify-content-center mb-0">
+                    {% if menu_items.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('owner.owner_menu', page=menu_items.prev_num, **filter_values) }}">
+                            Trước
+                        </a>
+                    </li>
+                    {% else %}
                     <li class="page-item disabled">
                         <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Trước</a>
                     </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    {% endif %}
+
+                    {% for page_num in menu_items.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if menu_items.page == page_num %}
+                                <li class="page-item active"><a class="page-link" href="#">{{ page_num }}</a></li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('owner.owner_menu', page=page_num, **filter_values) }}">
+                                        {{ page_num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if menu_items.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="#">Tiếp</a>
+                        <a class="page-link" href="{{ url_for('owner.owner_menu', page=menu_items.next_num, **filter_values) }}">
+                            Tiếp
+                        </a>
                     </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Tiếp</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </nav>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý toggle status bằng AJAX
+    document.querySelectorAll('.toggle-status-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-item-id');
+
+            fetch(`/owner/menu/${itemId}/toggle-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload trang để cập nhật trạng thái
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi kết nối đến server');
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

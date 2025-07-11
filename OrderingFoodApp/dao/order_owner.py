@@ -1,4 +1,4 @@
-# order_dao.py
+# order_owner.py
 from OrderingFoodApp.models import Order, OrderItem, User, Restaurant, db, Notification, NotificationType
 from sqlalchemy import func, and_, or_
 from datetime import datetime, timedelta

@@ -121,6 +121,7 @@ class MenuItem(db.Model):
 
     cart_items = relationship('CartItem', backref='menu_item', lazy=True)
     order_items = relationship('OrderItem', backref='menu_item', lazy=True)
+    is_active = Column(Boolean, default=True)
 
 
 # ========== CART ==========
