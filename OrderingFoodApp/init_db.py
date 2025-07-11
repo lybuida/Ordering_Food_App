@@ -127,7 +127,7 @@ def seed_data():
             customer_id=customer.id,
             restaurant_id=selected_restaurant.id,
             total_amount=total_amount,
-            status=OrderStatus.CONFIRMED
+            status=OrderStatus.PENDING
         )
         db.session.add(order)
         db.session.flush()

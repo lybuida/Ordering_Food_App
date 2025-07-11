@@ -1,0 +1,149 @@
+{% extends "layout/base.html" %}
+{% block title %}Chi tiết đơn hàng #{{ order.code }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="fas fa-receipt me-2"></i>Chi tiết đơn hàng {{ order.code }}</h3>
+        <a href="{{ url_for('owner.owner_orders') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-user me-2"></i>Thông tin khách hàng
+                </div>
+                <div class="card-body">
+                    <p><strong>Tên:</strong> {{ order.customer.name }}</p>
+                    <p><strong>Email:</strong> {{ order.customer.email }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-store me-2"></i>Thông tin nhà hàng
+                </div>
+                <div class="card-body">
+                    <p><strong>Tên nhà hàng:</strong> {{ order.restaurant.name }}</p>
+                    <p><strong>Địa chỉ:</strong> {{ order.restaurant.address }}</p>
+                    <p><strong>Điện thoại:</strong> {{ order.restaurant.phone }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <i class="fas fa-list-alt me-2"></i>Chi tiết đơn hàng
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Món ăn</th>
+                            <th>Số lượng</th>
+                            <th>Đơn giá</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order['items'] %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ "{:,.0f}₫".format(item.price) }}</td>
+                            <td>{{ "{:,.0f}₫".format(item.total) }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="table-primary">
+                            <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
+                            <td><strong>{{ "{:,.0f}₫".format(order.total_amount) }}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <i class="fas fa-info-circle me-2"></i>Trạng thái đơn hàng
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge {% if order.status == 'pending' %}bg-warning
+                                      {% elif order.status == 'confirmed' %}bg-primary
+                                      {% elif order.status == 'preparing' %}bg-info
+                                      {% elif order.status == 'delivered' %}bg-success
+                                      {% elif order.status == 'completed' %}bg-success
+                                      {% elif order.status == 'cancelled' %}bg-danger{% endif %} fs-6">
+                        {{ order.status_display }}
+                    </span>
+                    <p class="mb-0 mt-2"><i class="fas fa-clock me-2"></i>Đặt lúc: {{ order.created_at }}</p>
+                </div>
+                {% if order.status == 'pending' %}
+                <div>
+                    <button class="btn btn-success me-2" onclick="updateOrderStatus({{ order.id }}, 'confirmed')">
+                        <i class="fas fa-check me-1"></i> Xác nhận
+                    </button>
+                    <button class="btn btn-danger" onclick="updateOrderStatus({{ order.id }}, 'cancelled')">
+                        <i class="fas fa-times me-1"></i> Huỷ đơn
+                    </button>
+                </div>
+                {% elif order.status == 'confirmed' %}
+                <div>
+                    <button class="btn btn-info me-2" onclick="updateOrderStatus({{ order.id }}, 'preparing')">
+                        <i class="fas fa-utensils me-1"></i> Bắt đầu chuẩn bị
+                    </button>
+                    <button class="btn btn-danger" onclick="updateOrderStatus({{ order.id }}, 'cancelled')">
+                        <i class="fas fa-times me-1"></i> Huỷ đơn
+                    </button>
+                </div>
+                {% elif order.status == 'preparing' %}
+                <button class="btn btn-success" onclick="updateOrderStatus({{ order.id }}, 'delivered')">
+                    <i class="fas fa-truck me-1"></i> Bắt đầu giao hàng
+                </button>
+                {% elif order.status == 'delivered' %}
+                <button class="btn btn-success" onclick="updateOrderStatus({{ order.id }}, 'completed')">
+                    <i class="fas fa-check-circle me-1"></i> Hoàn thành
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateOrderStatus(orderId, status) {
+    if (status === 'cancelled' && !confirm('Bạn có chắc chắn muốn huỷ đơn hàng này?')) {
+        return;
+    }
+
+    fetch(`/owner/orders/${orderId}/update-status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `status=${status}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi cập nhật trạng thái');
+    });
+}
+</script>
+{% endblock %}

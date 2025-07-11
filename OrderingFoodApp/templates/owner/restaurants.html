@@ -1,0 +1,149 @@
+{% extends "layout/base.html" %}
+{% block title %}Quản lý Nhà Hàng{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="fas fa-store me-2"></i>Quản lý Nhà Hàng</h3>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBranchModal">
+            <i class="fas fa-plus-circle me-1"></i>Thêm chi nhánh
+        </button>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <i class="fas fa-info-circle me-2"></i>Thông tin chính
+        </div>
+        <div class="card-body">
+            <form>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Tên nhà hàng</label>
+                        <input type="text" class="form-control" value="Nhà hàng ABC">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Logo</label>
+                        <input type="file" class="form-control">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Mô tả</label>
+                    <textarea class="form-control" rows="3">Nhà hàng chuyên các món ăn Việt Nam truyền thống</textarea>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Địa chỉ chính</label>
+                        <input type="text" class="form-control" value="123 Đường XYZ, Quận 1, TP.HCM">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Giờ mở cửa</label>
+                        <input type="time" class="form-control" value="08:00">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Giờ đóng cửa</label>
+                        <input type="time" class="form-control" value="22:00">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Ảnh nhà hàng</label>
+                    <input type="file" class="form-control" multiple>
+                    <div class="d-flex flex-wrap mt-2">
+                        <img src="/static/images/restaurant1.jpg" class="img-thumbnail me-2 mb-2" width="100" height="100">
+                        <img src="/static/images/restaurant2.jpg" class="img-thumbnail me-2 mb-2" width="100" height="100">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i>Lưu thay đổi</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Danh sách chi nhánh -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-code-branch me-2"></i>Chi nhánh nhà hàng
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tên chi nhánh</th>
+                            <th>Địa chỉ</th>
+                            <th>Giờ hoạt động</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Chi nhánh Quận 1</td>
+                            <td>123 Đường XYZ, Quận 1</td>
+                            <td>08:00 - 22:00</td>
+                            <td><span class="badge bg-success">Đang hoạt động</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Chi nhánh Quận 3</td>
+                            <td>456 Đường ABC, Quận 3</td>
+                            <td>09:00 - 21:30</td>
+                            <td><span class="badge bg-success">Đang hoạt động</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm chi nhánh -->
+<div class="modal fade" id="addBranchModal" tabindex="-1" aria-labelledby="addBranchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addBranchModalLabel">Thêm chi nhánh mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Tên chi nhánh</label>
+                        <input type="text" class="form-control" placeholder="Ví dụ: Chi nhánh Quận 1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Địa chỉ</label>
+                        <textarea class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Giờ mở cửa</label>
+                            <input type="time" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Giờ đóng cửa</label>
+                            <input type="time" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary">Thêm chi nhánh</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,8 +1,157 @@
 {% extends "layout/base.html" %}
 {% block title %}Trang chủ - Chủ Nhà Hàng{% endblock %}
 {% block content %}
-<div class="container mt-5">
-    <h3>🏪 Xin chào {{ user.name }}</h3>
-    <p>Đây là trang quản lý nhà hàng của bạn.</p>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3><i class="fas fa-store me-2"></i>Xin chào {{ user.name }}</h3>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="quickActions" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bolt me-1"></i>Hành động nhanh
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="quickActions">
+                        <li><a class="dropdown-item" href="/owner/restaurants/edit"><i class="fas fa-edit me-1"></i>Cập nhật thông tin nhà hàng</a></li>
+                        <li><a class="dropdown-item" href="/owner/menu/add"><i class="fas fa-plus-circle me-1"></i>Thêm món ăn mới</a></li>
+                        <li><a class="dropdown-item" href="/owner/promotions/create"><i class="fas fa-tag me-1"></i>Tạo khuyến mãi</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Đây là trang quản lý nhà hàng của bạn. Bạn có thể quản lý thông tin nhà hàng, thực đơn, đơn hàng và nhiều hơn nữa.
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <!-- Thống kê nhanh -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-chart-line me-2"></i>Thống kê nhanh
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <h5 class="text-success">12</h5>
+                                <small class="text-muted">Đơn hàng hôm nay</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <h5 class="text-primary">5,200,000₫</h5>
+                                <small class="text-muted">Doanh thu hôm nay</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3 border rounded bg-light">
+                                <h5 class="text-warning">3</h5>
+                                <small class="text-muted">Đơn chờ xác nhận</small>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/owner/statistics" class="btn btn-outline-primary btn-sm mt-2"><i class="fas fa-chart-pie me-1"></i>Xem thống kê chi tiết</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Đơn hàng mới -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-bell me-2"></i>Đơn hàng mới cần xử lý
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="/owner/orders/123" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between">
+                                <span>#ORD12345 - 12:30 10/07</span>
+                                <span class="badge bg-primary">350,000₫</span>
+                            </div>
+                            <small class="text-muted">2 món ăn - Giao hàng</small>
+                        </a>
+                        <a href="/owner/orders/124" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between">
+                                <span>#ORD12346 - 11:45 10/07</span>
+                                <span class="badge bg-primary">220,000₫</span>
+                            </div>
+                            <small class="text-muted">3 món ăn - Tại quán</small>
+                        </a>
+                    </div>
+                    <div class="text-center p-2">
+                        <a href="/owner/orders" class="btn btn-outline-warning btn-sm"><i class="fas fa-receipt me-1"></i>Xem tất cả đơn hàng</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <!-- Đánh giá mới -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-comments me-2"></i>Đánh giá mới
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="/owner/reviews/1" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between">
+                                <span>Nguyễn Văn A</span>
+                                <div>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star text-warning"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted">"Món ăn ngon, phục vụ tốt"</small>
+                        </a>
+                        <a href="/owner/reviews/2" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between">
+                                <span>Trần Thị B</span>
+                                <div>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="fas fa-star text-warning"></i>
+                                    <i class="far fa-star text-warning"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted">"Ngon nhưng hơi lâu"</small>
+                        </a>
+                    </div>
+                    <div class="text-center p-2">
+                        <a href="/owner/reviews" class="btn btn-outline-info btn-sm"><i class="fas fa-comment-dots me-1"></i>Xem tất cả đánh giá</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nhà hàng của tôi -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-store me-2"></i>Nhà hàng của tôi
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="/static/images/restaurant-placeholder.jpg" class="rounded me-3" width="80" height="80" alt="Nhà hàng">
+                        <div>
+                            <h5>Nhà hàng ABC</h5>
+                            <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>123 Đường XYZ, Quận 1</small>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="/owner/restaurants/edit" class="btn btn-outline-success btn-sm"><i class="fas fa-edit me-1"></i>Cập nhật thông tin</a>
+                        <a href="/owner/branches" class="btn btn-outline-secondary btn-sm"><i class="fas fa-code-branch me-1"></i>Chi nhánh (2)</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

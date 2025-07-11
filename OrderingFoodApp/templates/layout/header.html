@@ -22,8 +22,9 @@
                 <li class="nav-item"><a class="nav-link" href="/admin/statistics"><i class="fas fa-chart-line me-1"></i>Thống kê</a></li>
 
                 {% elif current_user.role == UserRole.OWNER %}
-                <li class="nav-item"><a class="nav-link" href="/owner/restaurants"><i class="fas fa-store me-1"></i>Nhà hàng của tôi</a></li>
-                <li class="nav-item"><a class="nav-link" href="/owner/orders"><i class="fas fa-receipt me-1"></i>Đơn hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('owner.owner_restaurants') }}"></i>Nhà hàng của tôi</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('owner.owner_menu') }}"></i>Quản lý thực đơn</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('owner.owner_orders') }}"><i class="fas fa-receipt me-1"></i>Đơn hàng</a></li>
                 <li class="nav-item"><a class="nav-link" href="/owner/reviews"><i class="fas fa-comments me-1"></i>Đánh giá</a></li>
 
                 {% elif current_user.role == UserRole.CUSTOMER %}
