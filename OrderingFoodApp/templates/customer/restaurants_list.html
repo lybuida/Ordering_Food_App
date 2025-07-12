@@ -1,7 +1,9 @@
 {% extends "layout/base.html" %}
 {% block title %}Nhà Hàng{% endblock %}
 {% block content %}
-<div class="container mt-5">
+<div class="container-fluid mt-5 px-4">
+
+
     <!-- Phần tìm kiếm được thiết kế lại -->
     <div class="row mb-4">
         <div class="col-12">
@@ -200,7 +202,11 @@
             {% if pagination.page > 1 %}
             <li class="page-item">
                 <a class="page-link rounded-pill mx-1"
-                   href="{{ url_for('customer.restaurants_list', page=pagination.page-1, search=search_query, category_id=selected_category_id) }}">
+                   href="{{ url_for('customer.restaurants_list',
+                    page=pagination.page-1,
+                    search=search_query,
+                    category_id=selected_category_id,
+                    search_type=search_type) }}">  <!-- Thêm search_type -->
                     <i class="fas fa-chevron-left"></i>
                 </a>
             </li>
@@ -214,7 +220,11 @@
             {% else %}
             <li class="page-item">
                 <a class="page-link rounded-pill mx-1"
-                   href="{{ url_for('customer.restaurants_list', page=p, search=search_query, category_id=selected_category_id) }}">
+                   href="{{ url_for('customer.restaurants_list',
+                    page=p,
+                    search=search_query,
+                    category_id=selected_category_id,
+                    search_type=search_type) }}">  <!-- Thêm search_type -->
                     {{ p }}
                 </a>
             </li>
@@ -224,7 +234,11 @@
             {% if pagination.page < pagination.total_pages %}
             <li class="page-item">
                 <a class="page-link rounded-pill mx-1"
-                   href="{{ url_for('customer.restaurants_list', page=pagination.page+1, search=search_query, category_id=selected_category_id) }}">
+                   href="{{ url_for('customer.restaurants_list',
+                    page=pagination.page+1,
+                    search=search_query,
+                    category_id=selected_category_id,
+                    search_type=search_type) }}">  <!-- Thêm search_type -->
                     <i class="fas fa-chevron-right"></i>
                 </a>
             </li>
@@ -254,9 +268,6 @@
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .container {
-        max-width: 1200px;
-    }
 
     /* Search section */
     .search-container {
@@ -487,6 +498,5 @@
             justify-content: flex-start;
         }
     }
-
 </style>
 {% endblock %}

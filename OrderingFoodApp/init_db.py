@@ -181,6 +181,36 @@ def seed_data():
     db.session.commit()
     print("✅ Seed thành công: 5 chủ nhà hàng, ~15 nhà hàng, ~180 món ăn, 5 khách hàng.")
 
+    # ========== TẠO 10 MÃ KHUYẾN MÃI GIẢ ==========
+    promo_image_urls = [
+        "https://olymstore.net/storage/15.11.2023/Olymstore%20001519%20(1).jpg",
+        "https://olymstore.net/storage/15.11.2023/Olymstore%20001519%20(1).jpg",
+        "https://olymstore.net/storage/15.11.2023/Olymstore%20001519%20(1).jpg",
+        "https://olymstore.net/storage/15.11.2023/Olymstore%20001519%20(1).jpg",
+        "https://olymstore.net/storage/15.11.2023/Olymstore%20001519%20(1).jpg",
+        "https://olymstore.net/storage/15.11.2023/Olymstore%20001519%20(1).jpg",
+        "https://olymstore.net/storage/15.11.2023/Olymstore%20001519%20(1).jpg",
+        "https://olymstore.net/storage/15.11.2023/Olymstore%20001519%20(1).jpg",
+        "https://olymstore.net/storage/15.11.2023/Olymstore%20001519%20(1).jpg",
+        "https://olymstore.net/storage/15.11.2023/Olymstore%20001519%20(1).jpg"
+    ]
+
+    for i in range(10):
+        code = f"SALE{random.randint(100, 999)}"
+        promo = PromoCode(
+            code=code,
+            description=fake.sentence(nb_words=8),
+            discount_type=random.choice([DiscountType.PERCENT, DiscountType.FIXED]),
+            discount_value=random.randint(5, 50) if i % 2 == 0 else random.randint(10000, 100000),
+            start_date=datetime(2025, 7, random.randint(1, 10)),
+            end_date=datetime(2025, 8, random.randint(20, 31)),
+            usage_limit=random.choice([10, 20, 50, 100]),
+            image_url=promo_image_urls[i % len(promo_image_urls)]
+        )
+        db.session.add(promo)
+
+    db.session.commit()
+
 
 if __name__ == '__main__':
     app = init_app()

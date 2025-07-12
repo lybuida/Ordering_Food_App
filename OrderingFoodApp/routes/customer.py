@@ -1,18 +1,60 @@
 # customer.py
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from flask_login import login_required, current_user
+from sqlalchemy import func
+
 from OrderingFoodApp.models import *
 from OrderingFoodApp.dao import customer_service as dao
 
 customer_bp = Blueprint('customer', __name__, url_prefix='/customer')
 
-
+# Giao diện trang chủ
 @customer_bp.route('/')
 @login_required
 def index():
     customer = User.query.filter_by(id=current_user.id).first()
-    return render_template('customer/index.html', user=customer)
 
+    # Lấy TẤT CẢ mã khuyến mãi còn hiệu lực (không giới hạn)
+    current_time = datetime.now()
+    promos = PromoCode.query.filter(
+        PromoCode.start_date <= current_time,
+        PromoCode.end_date >= current_time
+    ).all()
+
+    # Lấy TẤT CẢ nhà hàng có đơn hàng (không giới hạn)
+    top_restaurants = db.session.query(
+        Restaurant,
+        func.count(Order.id).label('order_count')
+    ).outerjoin(Order, Order.restaurant_id == Restaurant.id) \
+        .group_by(Restaurant.id) \
+        .order_by(func.count(Order.id).desc()) \
+        .all()
+
+    # Lấy TẤT CẢ món ăn bán chạy (không giới hạn)
+    top_menu_items = db.session.query(
+        MenuItem,
+        Restaurant,
+        func.sum(OrderItem.quantity).label('total_sold')
+    ) \
+        .join(OrderItem, OrderItem.menu_item_id == MenuItem.id) \
+        .join(Restaurant, Restaurant.id == MenuItem.restaurant_id) \
+        .group_by(MenuItem.id, Restaurant.id) \
+        .order_by(func.sum(OrderItem.quantity).desc()) \
+        .all()
+
+    # Chuyển đổi kết quả
+    featured_items = []
+    for item in top_menu_items:
+        menu_item = item[0]
+        menu_item.restaurant = item[1]
+        menu_item.total_sold = item[2] or 0
+        featured_items.append(menu_item)
+
+    return render_template('customer/index.html',
+                           user=customer,
+                           promos=promos,
+                           top_restaurants=top_restaurants,
+                           featured_items=featured_items)
 
 @customer_bp.route('/restaurants_list')
 @login_required
@@ -67,6 +109,13 @@ def restaurants_list():
         'end_page': end_page
     }
 
+    # Lấy danh sách mã khuyến mãi còn hiệu lực
+    current_time = datetime.now()
+    promos = PromoCode.query.filter(
+        PromoCode.start_date <= current_time,
+        PromoCode.end_date >= current_time
+    ).limit(5).all()
+
     # Truyền dữ liệu phù hợp với loại tìm kiếm
     if search_type == 'dishes':
         return render_template('customer/restaurants_list.html',
@@ -75,7 +124,8 @@ def restaurants_list():
                                search_query=search_query,
                                search_type=search_type,
                                selected_category_id=category_id,
-                               pagination=pagination_info)
+                               pagination=pagination_info,
+                               promos=promos)
     else:
         return render_template('customer/restaurants_list.html',
                                restaurants=restaurants,
@@ -83,8 +133,8 @@ def restaurants_list():
                                search_query=search_query,
                                search_type=search_type,
                                selected_category_id=category_id,
-                               pagination=pagination_info)
-
+                               pagination=pagination_info,
+                               promos=promos)
 
 #Xem menu nhà hàng
 @customer_bp.route('/restaurant/<int:restaurant_id>')
