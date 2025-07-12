@@ -13,15 +13,48 @@
             <h1 class="fw-bold">{{ menu_item.name }}</h1>
             <p class="text-muted">{{ menu_item.description }}</p>
             <h3 class="fw-bold text-primary">{{ "{:,.0f} đ".format(menu_item.price) }}</h3>
-            <a href="#" class="btn btn-success mt-3">
-                <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ hàng
-            </a>
-            <a href="{{ url_for('customer.restaurant_detail', restaurant_id=menu_item.restaurant_id) }}"
-               class="btn btn-outline-secondary mt-3 ms-2">
-               <i class="fas fa-arrow-left me-2"></i>Quay lại thực đơn
-            </a>
+
+            <!-- FORM thêm vào giỏ hàng -->
+            <form method="post" action="{{ url_for('customer.cart') }}">
+                <input type="hidden" name="action" value="add">
+                <input type="hidden" name="item_id" value="{{ menu_item.id }}">
+
+                <div class="d-flex align-items-center mt-3">
+                    <!-- Nút tăng giảm nhỏ gọn -->
+                    <div class="input-group me-3" style="width: 120px;">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="decreaseQuantity()">-
+                        </button>
+                        <input type="number" name="quantity" id="quantityInput"
+                               class="form-control text-center form-control-sm" value="1" min="1">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="increaseQuantity()">+
+                        </button>
+                    </div>
+
+                    <!-- Nút thêm vào giỏ hàng -->
+                    <button type="button" class="btn btn-success d-flex align-items-center"
+                            onclick="addToCartAnimation(this, {{ menu_item.id }})">
+                        <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ hàng
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-{% endblock %}
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/menu_item_detail.css') }}">
+<script src="{{ url_for('static', filename='js/customer/add_to_cart_animation.js') }}"></script>
+
+<script>
+    function decreaseQuantity() {
+        const input = document.getElementById('quantityInput');
+        if (parseInt(input.value) > 1) {
+            input.value = parseInt(input.value) - 1;
+        }
+    }
+    function increaseQuantity() {
+        const input = document.getElementById('quantityInput');
+        input.value = parseInt(input.value) + 1;
+    }
+</script>
+
+{% endblock %}

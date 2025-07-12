@@ -1,20 +1,16 @@
 {% extends "layout/base.html" %}
 {% block title %}{{ restaurant.name }}{% endblock %}
 
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/restaurant_detail.css') }}">
-{% endblock %}
-
 {% block content %}
 <div class="container mt-5">
     <!-- Thông tin nhà hàng -->
     <div class="card mb-4 shadow-sm">
         <div class="row g-0">
-            <div class="col-md-4 restaurant-image">
+            <div class="col-md-3 restaurant-image">
                 <img src="{{ restaurant.image_url or 'https://via.placeholder.com/500x400?text=Nhà+Hàng' }}"
                      class="img-fluid rounded-start" alt="{{ restaurant.name }}">
             </div>
-            <div class="col-md-8 restaurant-info">
+            <div class="col-md-9 restaurant-info">
                 <div class="card-body">
                     <h2 class="card-title fw-bold">{{ restaurant.name }}</h2>
                     <p class="card-text text-muted">{{ restaurant.description }}</p>
@@ -27,7 +23,7 @@
 
     <!-- Thực đơn nhóm theo loại -->
     {% for category in restaurant.menu_items|groupby('category.name') %}
-    <h3 class="fw-bold mt-5 mb-3">{{ category.grouper }}</h3>
+    <h3 class="menu-section-title">{{ category.grouper }}</h3>
     <div class="row">
         {% for item in category.list %}
         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
@@ -49,4 +45,8 @@
     </div>
     {% endfor %}
 </div>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/restaurant_detail.css') }}">
+<script src="{{ url_for('static', filename='js/customer/restaurant_detail.js') }}"></script>
+
 {% endblock %}
