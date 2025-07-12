@@ -104,3 +104,8 @@ def get_all_restaurants(page, per_page=12):
         'total': restaurants.total
     }
 
+def get_menu_item_by_id(menu_item_id):
+    """
+    Lấy thông tin món ăn theo ID
+    """
+    return MenuItem.query.get(menu_item_id)
