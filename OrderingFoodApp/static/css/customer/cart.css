@@ -1,0 +1,48 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.shop-header {
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.cart-items {
+  background-color: #ffffff;
+}
+
+.cart-item {
+  align-items: center;
+}
+
+.cart-item .item-image {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+}
+
+.quantity-control .btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantity-input {
+  width: 40px;
+  border: none;
+  background: transparent;
+  font-weight: bold;
+}
+
+.checkout-bar {
+  position: sticky;
+  bottom: 0;
+  background: #ffffff;
+  border-top: 1px solid #ddd;
+}
