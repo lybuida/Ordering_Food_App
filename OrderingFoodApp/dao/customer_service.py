@@ -55,6 +55,7 @@ def get_menu_items_by_name(search_query, page, per_page=12):
 
 # Tính điểm trung bình cho mỗi nhà hàng
 def get_restaurants_by_category(category_id, page, per_page=12):
+    # Tính điểm trung bình cho mỗi nhà hàng
     restaurants = db.session.query(
         Restaurant,
         func.coalesce(func.avg(Review.rating), 0.0).label('avg_rating')
@@ -102,3 +103,9 @@ def get_all_restaurants(page, per_page=12):
         'per_page': per_page,
         'total': restaurants.total
     }
+
+def get_menu_item_by_id(menu_item_id):
+    """
+    Lấy thông tin món ăn theo ID
+    """
+    return MenuItem.query.get(menu_item_id)

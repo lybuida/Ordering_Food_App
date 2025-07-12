@@ -1,0 +1,145 @@
+:root {
+    --primary-color: #4361ee;
+    --accent-color: #4895ef;
+    --success-color: #4cc9f0;
+    --light-bg: #f8f9fa;
+    --dark-text: #2b2d42;
+    --light-text: #8d99ae;
+    --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    --card-shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease-in-out;
+}
+
+body {
+    background-color: var(--light-bg);
+    color: var(--dark-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* Ảnh món ăn */
+
+.img-fluid {
+    border-radius: 20px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.6s ease, box-shadow 0.3s ease;
+}
+
+.img-fluid:hover {
+    transform: scale(1.05);
+    box-shadow: var(--card-shadow-hover);
+}
+
+.col-md-6:first-child {
+    flex: 0 0 40%; /* ảnh chiếm 40% chiều ngang */
+    max-width: 40%;
+}
+.col-md-6:last-child {
+    flex: 0 0 60%; /* nội dung chiếm 60% */
+    max-width: 60%;
+}
+
+
+/* Tiêu đề món ăn */
+h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 1rem;
+}
+
+p.text-muted {
+    font-size: 1rem;
+    color: var(--light-text);
+    margin-bottom: 1.2rem;
+}
+
+/* Giá món ăn */
+h3.text-primary {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+/* Button Thêm vào giỏ hàng */
+.btn-success {
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border: none;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
+}
+
+/* Button Quay lại */
+.btn-outline-secondary {
+    border-radius: 50px;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.btn-outline-secondary:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
+}
+
+/* Ẩn nút tam giác tăng giảm mặc định */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Nút tăng giảm đồng bộ chiều cao */
+.input-group .btn-outline-secondary {
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: #fff;
+    height: 35px; /* Chiều cao bằng btn-success */
+    width: 35px;  /* Chiều rộng để tròn */
+    padding: 0;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: var(--transition);
+    box-shadow: var(--card-shadow);
+}
+
+
+/* Ô số lượng */
+.input-group input[type="number"] {
+    text-align: center;
+    border: 0.1px solid var(--primary-color);
+    border-radius: 50px;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.input-group input[type="number"]:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 5px rgba(72, 149, 239, 0.5);
+    outline: none;
+}
+
+
+
+

@@ -1,5 +1,5 @@
 # customer.py
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from flask_login import login_required, current_user
 from sqlalchemy import func
 
@@ -152,3 +152,59 @@ def restaurant_detail(restaurant_id):
 def view_menu_item(menu_item_id):
     menu_item = MenuItem.query.get_or_404(menu_item_id)
     return render_template('customer/menu_item_detail.html', menu_item=menu_item)
+
+
+#Quản lý giỏ hàng
+@customer_bp.route('/cart', methods=['GET', 'POST'])
+def cart():
+    # Khởi tạo giỏ hàng nếu chưa có
+    if 'cart' not in session:
+        session['cart'] = {}
+
+    cart = session['cart']
+
+    if request.method == 'POST':
+        action = request.form.get('action')
+        item_id = request.form.get('item_id')
+        if not item_id:
+            return redirect(url_for('customer.cart'))
+
+        item_id = str(item_id)
+
+        # Xử lý các hành động giỏ hàng
+        if action == 'add':
+            quantity = int(request.form.get('quantity', 1))
+            current_quantity = cart.get(item_id, 0)
+            cart[item_id] = current_quantity + quantity
+            flash(f'Đã thêm {quantity} x {dao.get_menu_item_by_id(int(item_id)).name} vào giỏ hàng!',
+                  'success')
+        elif action == 'increase':
+            cart[item_id] += 1
+        elif action == 'decrease':
+            if cart[item_id] > 1:
+                cart[item_id] -= 1
+            else:
+                del cart[item_id]  # Xóa nếu số lượng giảm về 0
+        elif action == 'remove':
+            cart.pop(item_id, None)
+
+        session['cart'] = cart
+        return redirect(url_for('customer.cart'))
+
+    # Lấy thông tin món ăn từ DAO để hiển thị giỏ hàng
+    items = []
+    total_price = 0
+    for item_id, quantity in cart.items():
+        menu_item = dao.get_menu_item_by_id(int(item_id))
+        if menu_item:
+            subtotal = menu_item.price * quantity
+            total_price += subtotal
+            items.append({
+                'id': menu_item.id,
+                'name': menu_item.name,
+                'price': menu_item.price,
+                'quantity': quantity,
+                'subtotal': subtotal
+            })
+
+    return render_template('customer/cart.html', items=items, total_price=total_price)

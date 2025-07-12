@@ -1,37 +1,95 @@
-.card-img-top {
-    border-radius: 8px;
-    height: 140px;
-    object-fit: cover;
+:root {
+    --primary-color: #4361ee;
+    --accent-color: #4895ef;
+    --light-bg: #f8f9fa;
+    --dark-text: #2b2d42;
+    --light-text: #8d99ae;
+    --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    --card-shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease-in-out;
 }
 
+body {
+    background-color: var(--light-bg);
+    color: var(--dark-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* Card tổng thể */
 .card {
-    border-radius: 12px;
-    transition: all 0.3s ease;
+    border-radius: 20px; /* Bo góc giống ảnh */
+    transition: var(--transition);
+    box-shadow: var(--card-shadow);
+    background: #fff;
+    overflow: hidden; /* Đảm bảo ảnh bên trong không tràn góc */
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--card-shadow-hover);
 }
 
+/* Ảnh nhà hàng */
+.restaurant-image img {
+    border-radius: 20px; /* Đồng bộ bo góc với card */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease, box-shadow 0.3s ease;
+    box-shadow: var(--card-shadow);
+}
+
+.restaurant-image:hover img {
+    transform: scale(1.05);
+    box-shadow: var(--card-shadow-hover);
+}
+
+/* Ảnh món ăn */
+.card-img-top {
+    border-radius: 20px;
+    transition: transform 0.6s ease;
+    height: 200px;
+    object-fit: cover;
+}
+
+.card:hover .card-img-top {
+    transform: scale(1.1);
+}
+
+/* Buttons */
 .btn-outline-primary {
     border-radius: 50px;
+    border: 1px solid var(--primary-color);
+    transition: var(--transition);
+    color: var(--primary-color);
+    font-weight: 500;
+    background: transparent;
 }
 
-h3.fw-bold {
-    border-left: 4px solid #4361ee;
-    padding-left: 10px;
-    color: #4361ee;
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
+    transform: translateY(-2px);
 }
 
-.card-body p.text-muted {
-    font-size: 0.9rem;
-    line-height: 1.4;
+.btn-outline-primary:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.4);
 }
 
-
-
-<style>
-  body { background: yellow; }
-</style>
+.menu-section-title {
+    border-left: 5px solid var(--primary-color);
+    padding-left: 12px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 1.2rem;
+    margin-top: 2rem;
+}
 
