@@ -1,0 +1,162 @@
+{% extends "layout/base.html" %}
+{% block title %}Chi tiết đơn hàng - FoodExpress{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <a href="{{ url_for('customer.orders_history') }}" class="btn btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+            <h1 class="fw-bold">Chi tiết đơn hàng #{{ order.id }}</h1>
+            <p class="text-muted">Đặt lúc {{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Thông tin đơn hàng</h5>
+                        <span class="badge bg-warning fs-6 py-2 px-3">
+                            {% if order.status.value == 'completed' %}
+                                Hoàn thành
+                            {% elif order.status.value == 'cancelled' %}
+                                Đã hủy
+                            {% else %}
+                                {{ order.status.value }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="{{ order.restaurant.image_url }}"
+                             class="rounded-circle me-3"
+                             width="64" height="64"
+                             style="object-fit: cover;"
+                             onerror="this.onerror=null;this.src='https://via.placeholder.com/64x64?text=R';"
+                             alt="{{ order.restaurant.name }}">
+                        <div>
+                            <h5 class="mb-1">{{ order.restaurant.name }}</h5>
+                            <p class="text-muted mb-0">{{ order.restaurant.address }}</p>
+                        </div>
+                    </div>
+
+                    <h6 class="mb-3">Danh sách món ăn</h6>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Món</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order_items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ item.menu_item.image_url }}"
+                                                 class="rounded me-3"
+                                                 width="50" height="50"
+                                                 style="object-fit: cover;"
+                                                 onerror="this.onerror=null;this.src='https://via.placeholder.com/50x50?text=F';"
+                                                 alt="{{ item.menu_item.name }}">
+                                            <div>
+                                                <h6 class="mb-0">{{ item.menu_item.name }}</h6>
+                                                <p class="text-muted mb-0 small">{{ item.menu_item.description[:50] }}...</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ item.quantity }}</td>
+                                    <td class="text-end">{{ "{:,.0f} đ".format(item.price) }}</td>
+                                    <td class="text-end">{{ "{:,.0f} đ".format(item.price * item.quantity) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-group-divider">
+                                <tr>
+                                    <td colspan="3" class="fw-bold text-end">Tổng cộng:</td>
+                                    <td class="fw-bold text-end text-danger">{{ "{:,.0f} đ".format(order.total_amount) }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Thông tin thanh toán</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <p class="mb-1 text-muted">Phương thức thanh toán</p>
+                        <p class="fw-bold">
+                            {% if payment %}
+                                {{ payment.method.value | replace('_', ' ') | title }}
+                            {% else %}
+                                Chưa xác định
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="mb-1 text-muted">Trạng thái thanh toán</p>
+                        <p class="fw-bold">
+                            {% if payment %}
+                                {{ payment.status.value | title }}
+                            {% else %}
+                                Chưa thanh toán
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if payment and payment.paid_at %}
+                    <div>
+                        <p class="mb-1 text-muted">Thời gian thanh toán</p>
+                        <p class="fw-bold">{{ payment.paid_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Thông tin khách hàng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <p class="mb-1 text-muted">Tên khách hàng</p>
+                        <p class="fw-bold">{{ current_user.name }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <p class="mb-1 text-muted">Email</p>
+                        <p class="fw-bold">{{ current_user.email }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table th {
+        font-weight: 600;
+        color: #6c757d;
+    }
+    
+    .table tbody tr:last-child {
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}

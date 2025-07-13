@@ -3,6 +3,7 @@ from OrderingFoodApp.models import *
 from faker import Faker
 from werkzeug.security import generate_password_hash
 import random
+from datetime import datetime, timedelta  # Thêm import ở đầu file nếu chưa có
 
 fake = Faker('vi_VN')
 
@@ -106,77 +107,90 @@ def seed_data():
 
     # ========== TẠO GIỎ HÀNG & ĐƠN HÀNG ==========
     for customer in customers:
-        selected_restaurant = random.choice(restaurants)
-        items = MenuItem.query.filter_by(restaurant_id=selected_restaurant.id).limit(4).all()
+        for _ in range(5):  # 👉 Mỗi khách hàng tạo 5 đơn hàng
+            selected_restaurant = random.choice(restaurants)
+            items = MenuItem.query.filter_by(restaurant_id=selected_restaurant.id).limit(4).all()
 
-        # Giỏ hàng
-        cart = Cart(customer_id=customer.id)
-        db.session.add(cart)
-        db.session.flush()
-        for item in items:
-            cart_item = CartItem(
-                cart_id=cart.id,
-                menu_item_id=item.id,
-                quantity=random.randint(1, 3)
+            # Giỏ hàng
+            cart = Cart(customer_id=customer.id)
+            db.session.add(cart)
+            db.session.flush()
+            for item in items:
+                cart_item = CartItem(
+                    cart_id=cart.id,
+                    menu_item_id=item.id,
+                    quantity=random.randint(1, 3)
+                )
+                db.session.add(cart_item)
+
+            # Đơn hàng
+            total_amount = sum(item.price * 2 for item in items)
+
+            # Random trạng thái đơn hàng
+            order_status = random.choice([
+                OrderStatus.PENDING,
+                OrderStatus.CONFIRMED,
+                OrderStatus.PREPARING,
+                OrderStatus.COMPLETED,
+                OrderStatus.CANCELLED
+            ])
+
+            order = Order(
+                customer_id=customer.id,
+                restaurant_id=selected_restaurant.id,
+                total_amount=total_amount,
+                status=order_status
             )
-            db.session.add(cart_item)
 
-        # Đơn hàng
-        total_amount = sum(item.price * 2 for item in items)
-        order = Order(
-            customer_id=customer.id,
-            restaurant_id=selected_restaurant.id,
-            total_amount=total_amount,
-            status=OrderStatus.PENDING
-        )
-        db.session.add(order)
-        db.session.flush()
+            db.session.add(order)
+            db.session.flush()
 
-        for item in items:
-            order_item = OrderItem(
+            for item in items:
+                order_item = OrderItem(
+                    order_id=order.id,
+                    menu_item_id=item.id,
+                    quantity=2,
+                    price=item.price
+                )
+                db.session.add(order_item)
+
+            # Thanh toán
+            payment = Payment(
                 order_id=order.id,
-                menu_item_id=item.id,
-                quantity=2,
-                price=item.price
+                amount=total_amount,
+                method=PaymentMethod.CASH_ON_DELIVERY,
+                status=PaymentStatus.COMPLETED
             )
-            db.session.add(order_item)
+            db.session.add(payment)
 
-        # Thanh toán
-        payment = Payment(
-            order_id=order.id,
-            amount=total_amount,
-            method=PaymentMethod.CASH_ON_DELIVERY,
-            status=PaymentStatus.COMPLETED
-        )
-        db.session.add(payment)
+            # Đánh giá
+            review = Review(
+                customer_id=customer.id,
+                restaurant_id=selected_restaurant.id,
+                order_id=order.id,
+                rating=random.randint(4, 5),
+                comment=fake.sentence(nb_words=12)
+            )
+            db.session.add(review)
+            db.session.flush()
 
-        # Đánh giá
-        review = Review(
-            customer_id=customer.id,
-            restaurant_id=selected_restaurant.id,
-            order_id=order.id,
-            rating=random.randint(4, 5),
-            comment=fake.sentence(nb_words=12)
-        )
-        db.session.add(review)
-        db.session.flush()
+            # Phản hồi đánh giá
+            response = ReviewResponse(
+                review_id=review.id,
+                owner_id=selected_restaurant.owner_id,
+                response_text="Cảm ơn bạn đã ủng hộ quán!"
+            )
+            db.session.add(response)
 
-        # Phản hồi đánh giá
-        response = ReviewResponse(
-            review_id=review.id,
-            owner_id=selected_restaurant.owner_id,
-            response_text="Cảm ơn bạn đã ủng hộ quán!"
-        )
-        db.session.add(response)
+            # Thông báo
+            notification = Notification(
+                user_id=customer.id,
+                type=NotificationType.ORDER_STATUS,
+                message=f"Đơn hàng #{order.id} đã được xác nhận.",
+                is_read=False
+            )
+            db.session.add(notification)
 
-        # Thông báo
-        notification = Notification(
-            user_id=customer.id,
-            type=NotificationType.ORDER_STATUS,
-            message=f"Đơn hàng #{order.id} đã được xác nhận.",
-            is_read=False
-        )
-        db.session.add(notification)
 
     db.session.commit()
     print("✅ Seed thành công: 5 chủ nhà hàng, ~15 nhà hàng, ~180 món ăn, 5 khách hàng.")

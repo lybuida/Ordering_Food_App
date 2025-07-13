@@ -109,3 +109,35 @@ def get_menu_item_by_id(menu_item_id):
     Lấy thông tin món ăn theo ID
     """
     return MenuItem.query.get(menu_item_id)
+
+
+def get_orders_history(customer_id):
+    """
+    Lấy lịch sử đơn hàng (completed hoặc cancelled) của một khách hàng
+    """
+    # orders = Order.query.filter_by(customer_id=customer_id) \
+    #     .filter(Order.status.in_([OrderStatus.COMPLETED, OrderStatus.CANCELLED])) \
+    #     .options(
+    #     db.joinedload(Order.restaurant),
+    #     db.joinedload(Order.order_items).joinedload(OrderItem.menu_item)
+    # ) \
+    #     .order_by(Order.created_at.desc()) \
+    #     .all()
+    #
+    # # Đảm bảo mỗi order có thuộc tính order_items (ngay cả khi rỗng)
+    # for order in orders:
+    #     if not hasattr(order, 'order_items'):
+    #         order.order_items = []
+    #
+    # return orders
+
+    orders = Order.query.filter_by(customer_id=customer_id) \
+        .filter(Order.status.in_([OrderStatus.COMPLETED, OrderStatus.CANCELLED])) \
+        .options(
+        db.joinedload(Order.restaurant),
+        db.joinedload(Order.order_items).joinedload(OrderItem.menu_item)
+    ) \
+        .order_by(Order.created_at.desc()) \
+        .all()
+
+    return orders

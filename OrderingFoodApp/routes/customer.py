@@ -87,11 +87,31 @@ def restaurants_list():
 
     categories = MenuCategory.query.all()
 
-    total_pages = (data['total'] + per_page - 1) // per_page
+    # total_pages = (data['total'] + per_page - 1) // per_page
 
-    # Tính toán start_page và end_page
-    start_page = max(1, page - 2)
-    end_page = min(total_pages, page + 2)
+    # THÊM KIỂM TRA KHI KHÔNG CÓ DỮ LIỆU
+    if data['total'] == 0:
+        total_pages = 0
+    else:
+        total_pages = (data['total'] + per_page - 1) // per_page
+
+    # # Tính toán start_page và end_page
+    # start_page = max(1, page - 2)
+    # end_page = min(total_pages, page + 2)
+
+    # Tính toán start_page và end_page CHỈ KHI CÓ TRANG
+    if total_pages > 0:
+        start_page = max(1, page - 2)
+        end_page = min(total_pages, page + 2)
+
+        # Điều chỉnh nếu khoảng trang < 5
+        if end_page - start_page < 4:
+            if start_page == 1:
+                end_page = min(total_pages, start_page + 4)
+            else:
+                start_page = max(1, end_page - 4)
+    else:
+        start_page = end_page = 0
 
     # Nếu số trang ít hơn 5, điều chỉnh để hiển thị đủ
     if end_page - start_page < 4:
@@ -208,3 +228,31 @@ def cart():
             })
 
     return render_template('customer/cart.html', items=items, total_price=total_price)
+
+
+@customer_bp.route('/orders')
+@login_required
+def orders_history():
+    # Chỉ lấy đơn hàng của người dùng hiện tại (current_user.id)
+    orders = dao.get_orders_history(current_user.id)
+    return render_template('customer/orders_history.html', orders=orders)
+
+
+@customer_bp.route('/order/<int:order_id>')
+@login_required
+def order_detail(order_id):
+    # Lấy chi tiết đơn hàng và kiểm tra xem đơn hàng có thuộc về người dùng hiện tại không
+    order = Order.query.filter_by(id=order_id, customer_id=current_user.id).first_or_404()
+
+    # Lấy các món trong đơn hàng
+    order_items = OrderItem.query.filter_by(order_id=order_id) \
+        .join(MenuItem) \
+        .all()
+
+    # Lấy thông tin thanh toán nếu có
+    payment = Payment.query.filter_by(order_id=order_id).first()
+
+    return render_template('customer/orders_history_detail.html',
+                           order=order,
+                           order_items=order_items,
+                           payment=payment)
