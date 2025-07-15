@@ -24,8 +24,7 @@ def init_app():
     app.config['SECRET_KEY'] = 'sieu-bi-mat-123'
     # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:askme@localhost/db_orderingfood?charset=utf8mb4'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:26032004@localhost/db_orderingfood?charset=utf8mb4'
-    # app.config[
-    #     "SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:01676831139Chi%40@localhost:3306/db_orderingfood?charset=utf8mb4"
+
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
