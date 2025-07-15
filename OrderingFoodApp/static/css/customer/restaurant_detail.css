@@ -1,37 +1,182 @@
-.card-img-top {
-    border-radius: 8px;
-    height: 140px;
-    object-fit: cover;
+:root {
+    --primary-color: #4361ee;
+    --accent-color: #4895ef;
+    --light-bg: #f8f9fa;
+    --dark-text: #2b2d42;
+    --light-text: #8d99ae;
+    --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    --card-shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease-in-out;
 }
 
+body {
+    background-color: var(--light-bg);
+    color: var(--dark-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* Card tổng thể */
 .card {
-    border-radius: 12px;
-    transition: all 0.3s ease;
+    border-radius: 20px; /* Bo góc giống ảnh */
+    transition: var(--transition);
+    box-shadow: var(--card-shadow);
+    background: #fff;
+    overflow: hidden; /* Đảm bảo ảnh bên trong không tràn góc */
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--card-shadow-hover);
 }
 
+/* Ảnh nhà hàng */
+.restaurant-image img {
+    border-radius: 20px; /* Đồng bộ bo góc với card */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease, box-shadow 0.3s ease;
+    box-shadow: var(--card-shadow);
+}
+
+.restaurant-image:hover img {
+    transform: scale(1.05);
+    box-shadow: var(--card-shadow-hover);
+}
+
+/* Ảnh món ăn */
+.card-img-top {
+    border-radius: 20px;
+    transition: transform 0.6s ease;
+    height: 200px;
+    object-fit: cover;
+}
+
+.card:hover .card-img-top {
+    transform: scale(1.1);
+}
+
+/* Buttons */
 .btn-outline-primary {
     border-radius: 50px;
+    border: 1px solid var(--primary-color);
+    transition: var(--transition);
+    color: var(--primary-color);
+    font-weight: 500;
+    background: transparent;
 }
 
-h3.fw-bold {
-    border-left: 4px solid #4361ee;
-    padding-left: 10px;
-    color: #4361ee;
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
+    transform: translateY(-2px);
 }
 
-.card-body p.text-muted {
-    font-size: 0.9rem;
-    line-height: 1.4;
+.btn-outline-primary:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.4);
+}
+
+.menu-section-title {
+    border-left: 5px solid var(--primary-color);
+    padding-left: 12px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 1.2rem;
+    margin-top: 2rem;
+}
+
+/* Nút tròn mặc định */
+.btn.rounded-circle {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    border-radius: 50%;
+    background-color: #fff; /* Nền trắng mặc định */
+    color: var(--primary-color); /* Màu icon mặc định */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    transition: var(--transition);
+}
+
+/* Hover: đổi màu nền và màu icon */
+.btn.rounded-circle:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: #fff; /* Icon trắng khi hover */
+}
+
+/* Active: nhấn nhẹ xuống */
+.btn.rounded-circle:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 6px rgba(67, 97, 238, 0.4);
+}
+
+.btn.rounded-circle:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    background-color: #f1f3f5;
+    color: var(--light-text);
+}
+
+.card .fa-star {
+    color: #f1c40f; /* Màu sao vàng */
+}
+
+.card .fa-user-circle {
+    color: var(--primary-color);
+}
+
+
+.no-review {
+    margin-left: 16px; /* đúng khoảng cách của card */
+    color: var(--light-text);
+    font-size: 1rem;
+}
+
+/* Slider: cho khoảng cách giữa các card */
+[id^="slider-"] {
+  display: flex;           /* đảm bảo flex container */
+  gap: 1rem;               /* khoảng cách 1rem giữa mỗi card */
+  padding-bottom: 1rem;    /* khoảng trắng dưới nếu cần */
+  overflow-x: auto;        /* vẫn giữ scroll */
+  scroll-behavior: smooth; /* smooth scroll */
+}
+
+/* Ép mỗi card target auto width, giữ margin-bottom cũ */
+[id^="slider-"] .col-lg-3,
+[id^="slider-"] .col-md-4,
+[id^="slider-"] .col-sm-6 {
+  flex: 0 0 auto;          /* không co giãn, width mặc định theo class */
+  margin-bottom: 1rem;     /* giữ khoảng cách dưới */
+}
+
+/* Nếu muốn, ẩn scroll bar đẹp hơn */
+[id^="slider-"]::-webkit-scrollbar {
+  height: 6px;
+}
+[id^="slider-"]::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+.review-item {
+  transition: var(--transition);
 }
 
 
 
-<style>
-  body { background: yellow; }
-</style>
+
+
+
+
 

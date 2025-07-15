@@ -1,18 +1,60 @@
 # customer.py
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_login import login_required, current_user
+from sqlalchemy import func
+
 from OrderingFoodApp.models import *
 from OrderingFoodApp.dao import customer_service as dao
 
 customer_bp = Blueprint('customer', __name__, url_prefix='/customer')
 
-
+# Giao diện trang chủ
 @customer_bp.route('/')
 @login_required
 def index():
     customer = User.query.filter_by(id=current_user.id).first()
-    return render_template('customer/index.html', user=customer)
 
+    # Lấy TẤT CẢ mã khuyến mãi còn hiệu lực (không giới hạn)
+    current_time = datetime.now()
+    promos = PromoCode.query.filter(
+        PromoCode.start_date <= current_time,
+        PromoCode.end_date >= current_time
+    ).all()
+
+    # Lấy TẤT CẢ nhà hàng có đơn hàng (không giới hạn)
+    top_restaurants = db.session.query(
+        Restaurant,
+        func.count(Order.id).label('order_count')
+    ).outerjoin(Order, Order.restaurant_id == Restaurant.id) \
+        .group_by(Restaurant.id) \
+        .order_by(func.count(Order.id).desc()) \
+        .all()
+
+    # Lấy TẤT CẢ món ăn bán chạy (không giới hạn)
+    top_menu_items = db.session.query(
+        MenuItem,
+        Restaurant,
+        func.sum(OrderItem.quantity).label('total_sold')
+    ) \
+        .join(OrderItem, OrderItem.menu_item_id == MenuItem.id) \
+        .join(Restaurant, Restaurant.id == MenuItem.restaurant_id) \
+        .group_by(MenuItem.id, Restaurant.id) \
+        .order_by(func.sum(OrderItem.quantity).desc()) \
+        .all()
+
+    # Chuyển đổi kết quả
+    featured_items = []
+    for item in top_menu_items:
+        menu_item = item[0]
+        menu_item.restaurant = item[1]
+        menu_item.total_sold = item[2] or 0
+        featured_items.append(menu_item)
+
+    return render_template('customer/index.html',
+                           user=customer,
+                           promos=promos,
+                           top_restaurants=top_restaurants,
+                           featured_items=featured_items)
 
 @customer_bp.route('/restaurants_list')
 @login_required
@@ -45,11 +87,31 @@ def restaurants_list():
 
     categories = MenuCategory.query.all()
 
-    total_pages = (data['total'] + per_page - 1) // per_page
+    # total_pages = (data['total'] + per_page - 1) // per_page
 
-    # Tính toán start_page và end_page
-    start_page = max(1, page - 2)
-    end_page = min(total_pages, page + 2)
+    # THÊM KIỂM TRA KHI KHÔNG CÓ DỮ LIỆU
+    if data['total'] == 0:
+        total_pages = 0
+    else:
+        total_pages = (data['total'] + per_page - 1) // per_page
+
+    # # Tính toán start_page và end_page
+    # start_page = max(1, page - 2)
+    # end_page = min(total_pages, page + 2)
+
+    # Tính toán start_page và end_page CHỈ KHI CÓ TRANG
+    if total_pages > 0:
+        start_page = max(1, page - 2)
+        end_page = min(total_pages, page + 2)
+
+        # Điều chỉnh nếu khoảng trang < 5
+        if end_page - start_page < 4:
+            if start_page == 1:
+                end_page = min(total_pages, start_page + 4)
+            else:
+                start_page = max(1, end_page - 4)
+    else:
+        start_page = end_page = 0
 
     # Nếu số trang ít hơn 5, điều chỉnh để hiển thị đủ
     if end_page - start_page < 4:
@@ -67,6 +129,13 @@ def restaurants_list():
         'end_page': end_page
     }
 
+    # Lấy danh sách mã khuyến mãi còn hiệu lực
+    current_time = datetime.now()
+    promos = PromoCode.query.filter(
+        PromoCode.start_date <= current_time,
+        PromoCode.end_date >= current_time
+    ).limit(5).all()
+
     # Truyền dữ liệu phù hợp với loại tìm kiếm
     if search_type == 'dishes':
         return render_template('customer/restaurants_list.html',
@@ -75,7 +144,8 @@ def restaurants_list():
                                search_query=search_query,
                                search_type=search_type,
                                selected_category_id=category_id,
-                               pagination=pagination_info)
+                               pagination=pagination_info,
+                               promos=promos)
     else:
         return render_template('customer/restaurants_list.html',
                                restaurants=restaurants,
@@ -83,8 +153,8 @@ def restaurants_list():
                                search_query=search_query,
                                search_type=search_type,
                                selected_category_id=category_id,
-                               pagination=pagination_info)
-
+                               pagination=pagination_info,
+                               promos=promos)
 
 #Xem menu nhà hàng
 @customer_bp.route('/restaurant/<int:restaurant_id>')
@@ -104,3 +174,76 @@ def view_menu_item(menu_item_id):
     return render_template('customer/menu_item_detail.html', menu_item=menu_item)
 
 
+#Quản lý giỏ hàng
+from OrderingFoodApp.dao import cart_service as cart_dao
+@customer_bp.route('/cart', methods=['GET', 'POST'])
+def cart():
+    cart = cart_dao.init_cart()
+
+    if request.method == 'POST':
+        action  = request.form.get('action')
+        item_id = request.form.get('item_id')
+        if not item_id:
+            return redirect(url_for('customer.cart'))
+        item_id = str(item_id)
+
+        # ——— AJAX request ———
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            cart_dao.update_cart(action, item_id)
+            menu_item = MenuItem.query.get(int(item_id))
+            quantity = cart.get(item_id, 0)
+            subtotal = float(menu_item.price) * quantity
+            return jsonify({'quantity': quantity, 'subtotal': subtotal})
+
+        # ——— Form submit (bình thường) ———
+        if action == 'add':
+            qty = int(request.form.get('quantity', 1))
+            cart_dao.update_cart(action, item_id, qty)
+        else:
+            cart_dao.update_cart(action, item_id)
+
+        return redirect(url_for('customer.cart'))
+
+    # GET → render template
+    items, total_price = cart_dao.get_cart_items()
+    grouped_items    = cart_dao.group_items_by_restaurant(items)
+    return render_template('customer/cart.html',
+                           grouped_items=grouped_items,
+                           total_price=total_price)
+
+
+@customer_bp.route('/orders')
+@login_required
+def orders_history():
+    # Chỉ lấy đơn hàng của người dùng hiện tại (current_user.id)
+    orders = dao.get_orders_history(current_user.id)
+    return render_template('customer/orders_history.html', orders=orders)
+
+
+@customer_bp.route('/order/<int:order_id>')
+@login_required
+def order_detail(order_id):
+    # Lấy chi tiết đơn hàng và kiểm tra xem đơn hàng có thuộc về người dùng hiện tại không
+    order = Order.query.filter_by(id=order_id, customer_id=current_user.id).first_or_404()
+
+    # Lấy các món trong đơn hàng
+    order_items = OrderItem.query.filter_by(order_id=order_id) \
+        .join(MenuItem) \
+        .all()
+
+    # Lấy thông tin thanh toán nếu có
+    payment = Payment.query.filter_by(order_id=order_id).first()
+
+    return render_template('customer/orders_history_detail.html',
+                           order=order,
+                           order_items=order_items,
+                           payment=payment)
+
+@customer_bp.route('/restaurant/<int:restaurant_id>/reviews')
+@login_required
+def restaurant_reviews(restaurant_id):
+    restaurant = Restaurant.query.get_or_404(restaurant_id)
+    reviews = restaurant.reviews  # tất cả reviews đã load sẵn quan hệ ORM
+    return render_template('customer/restaurant_reviews.html',
+                           restaurant=restaurant,
+                           reviews=reviews)

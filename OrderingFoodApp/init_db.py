@@ -3,7 +3,6 @@ from OrderingFoodApp.models import *
 from faker import Faker
 from werkzeug.security import generate_password_hash
 import random
-from datetime import time
 
 fake = Faker('vi_VN')
 
@@ -80,11 +79,9 @@ def seed_data():
                 description=fake.text(max_nb_chars=150),
                 address=fake.address(),
                 phone=fake.phone_number(),
-                opening_time=time(8, 0),  # Sử dụng đối tượng time
-                closing_time=time(22, 0),  # Sử dụng đối tượng time
                 latitude=random.uniform(10.75, 10.80),
                 longitude=random.uniform(106.65, 106.70),
-                image_url=f"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNRas_-SFKO__MFuzdDpDJX1N-lQ4uhw2ODw&s" # Thêm dòng này
+                image_url=f"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNRas_-SFKO__MFuzdDpDJX1N-lQ4uhw2ODw&s"  # Thêm dòng này
             )
             db.session.add(restaurant)
             db.session.flush()
@@ -104,25 +101,6 @@ def seed_data():
                     )
                     db.session.add(menu_item)
                     menu_items.append(menu_item)
-    db.session.commit()
-
-    # ========== TẠO CHI NHÁNH CHO MỖI NHÀ HÀNG ==========
-    # Trong hàm seed_data(), sửa phần tạo chi nhánh:
-    for restaurant in restaurants:
-        for i in range(1, 3):
-            branch = Branch(
-                restaurant_id=restaurant.id,
-                name=f"{restaurant.name} - Chi nhánh {fake.street_name()}",
-                address=fake.address(),
-                phone=fake.phone_number(),
-                opening_time=time(8, 0),  # Sử dụng đối tượng time
-                closing_time=time(22, 0),  # Sử dụng đối tượng time
-                # latitude=restaurant.latitude + random.uniform(-0.01, 0.01),
-                # longitude=restaurant.longitude + random.uniform(-0.01, 0.01),
-                image_url=restaurant.image_url,
-                status='active'
-            )
-            db.session.add(branch)
 
     db.session.commit()
 

@@ -4,9 +4,8 @@ from OrderingFoodApp.models import *
 from OrderingFoodApp import db
 from flask import request
 
-
+# Tìm kiếm nhà hàng theo TÊN NHÀ HÀNG
 def get_restaurants_by_name(search_query, page, per_page=12):
-    # Tìm kiếm nhà hàng theo TÊN NHÀ HÀNG
     restaurants = db.session.query(
         Restaurant,
         func.coalesce(func.avg(Review.rating), 0.0).label('avg_rating')
@@ -29,8 +28,9 @@ def get_restaurants_by_name(search_query, page, per_page=12):
         'total': restaurants.total
     }
 
+# Tìm món ăn chứa từ khóa, kèm theo thông tin nhà hàng
 def get_menu_items_by_name(search_query, page, per_page=12):
-    # Tìm món ăn chứa từ khóa, kèm theo thông tin nhà hàng
+
     menu_items = MenuItem.query \
         .join(Restaurant, MenuItem.restaurant_id == Restaurant.id) \
         .filter(MenuItem.name.ilike(f'%{search_query}%')) \
@@ -53,7 +53,7 @@ def get_menu_items_by_name(search_query, page, per_page=12):
         'total': menu_items.total
     }
 
-
+# Tính điểm trung bình cho mỗi nhà hàng
 def get_restaurants_by_category(category_id, page, per_page=12):
     # Tính điểm trung bình cho mỗi nhà hàng
     restaurants = db.session.query(
@@ -104,3 +104,40 @@ def get_all_restaurants(page, per_page=12):
         'total': restaurants.total
     }
 
+def get_menu_item_by_id(menu_item_id):
+    """
+    Lấy thông tin món ăn theo ID
+    """
+    return MenuItem.query.get(menu_item_id)
+
+
+def get_orders_history(customer_id):
+    """
+    Lấy lịch sử đơn hàng (completed hoặc cancelled) của một khách hàng
+    """
+    # orders = Order.query.filter_by(customer_id=customer_id) \
+    #     .filter(Order.status.in_([OrderStatus.COMPLETED, OrderStatus.CANCELLED])) \
+    #     .options(
+    #     db.joinedload(Order.restaurant),
+    #     db.joinedload(Order.order_items).joinedload(OrderItem.menu_item)
+    # ) \
+    #     .order_by(Order.created_at.desc()) \
+    #     .all()
+    #
+    # # Đảm bảo mỗi order có thuộc tính order_items (ngay cả khi rỗng)
+    # for order in orders:
+    #     if not hasattr(order, 'order_items'):
+    #         order.order_items = []
+    #
+    # return orders
+
+    orders = Order.query.filter_by(customer_id=customer_id) \
+        .filter(Order.status.in_([OrderStatus.COMPLETED, OrderStatus.CANCELLED])) \
+        .options(
+        db.joinedload(Order.restaurant),
+        db.joinedload(Order.order_items).joinedload(OrderItem.menu_item)
+    ) \
+        .order_by(Order.created_at.desc()) \
+        .all()
+
+    return orders

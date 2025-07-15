@@ -1,20 +1,16 @@
 {% extends "layout/base.html" %}
 {% block title %}{{ restaurant.name }}{% endblock %}
 
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/restaurant_detail.css') }}">
-{% endblock %}
-
 {% block content %}
 <div class="container mt-5">
     <!-- Thông tin nhà hàng -->
     <div class="card mb-4 shadow-sm">
         <div class="row g-0">
-            <div class="col-md-4 restaurant-image">
+            <div class="col-md-3 restaurant-image">
                 <img src="{{ restaurant.image_url or 'https://via.placeholder.com/500x400?text=Nhà+Hàng' }}"
                      class="img-fluid rounded-start" alt="{{ restaurant.name }}">
             </div>
-            <div class="col-md-8 restaurant-info">
+            <div class="col-md-9 restaurant-info">
                 <div class="card-body">
                     <h2 class="card-title fw-bold">{{ restaurant.name }}</h2>
                     <p class="card-text text-muted">{{ restaurant.description }}</p>
@@ -25,28 +21,121 @@
         </div>
     </div>
 
-    <!-- Thực đơn nhóm theo loại -->
-    {% for category in restaurant.menu_items|groupby('category.name') %}
-    <h3 class="fw-bold mt-5 mb-3">{{ category.grouper }}</h3>
-    <div class="row">
-        {% for item in category.list %}
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-            <div class="card h-100 shadow-sm">
-                <img src="{{ item.image_url or 'https://via.placeholder.com/400x300?text=Món+Ăn' }}"
-                     class="card-img-top rounded" alt="{{ item.name }}">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title fw-bold">{{ item.name }}</h5>
-                    <p class="card-text text-muted small">{{ item.description|truncate(60) }}</p>
-                    <p class="fw-bold text-primary mb-2">{{ "{:,.0f} đ".format(item.price) }}</p>
-                    <a href="{{ url_for('customer.view_menu_item', menu_item_id=item.id) }}"
-                       class="btn btn-outline-primary rounded-pill mt-auto">
-                        <i class="fas fa-eye me-1"></i> Xem chi tiết
-                    </a>
+    <!-- Phần đánh giá của khách hàng -->
+    <div class="mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="menu-section-title">Đánh giá của khách hàng</h3>
+            {% if restaurant.reviews|length > 2 %}
+            <button id="toggleReviews" class="btn btn-light rounded-circle next-btn" data-expanded="false"
+                    onclick="window.location.href='{{ url_for('customer.restaurant_reviews', restaurant_id=restaurant.id) }}'">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            {% endif %}
+        </div>
+
+        {% if restaurant.reviews %}
+        <div id="reviewContainer" class="row text-muted review">
+            {% for review in restaurant.reviews %}
+            <div class="col-md-6 mb-4 review-item">
+                <div class="card shadow-sm p-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-user-circle fa-2x me-2 text-primary"></i>
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ review.customer.name }}</h6>
+                            <small class="text-muted">{{ review.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                        </div>
+                    </div>
+                    <p class="mb-1 text-warning">
+                        {% for _ in range(review.rating) %}
+                        <i class="fas fa-star"></i>
+                        {% endfor %}
+                    </p>
+                    <p class="mb-2">{{ review.comment }}</p>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+        {% else %}
+        <p class="text-muted no-review">
+            Chưa có đánh giá nào cho nhà hàng này.
+        </p>
+        {% endif %}
+    </div>
+
+
+    <!-- Thực đơn nhóm theo loại (Slider ngang) -->
+    {% for category in restaurant.menu_items|groupby('category.name') %}
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="menu-section-title mb-0">{{ category.grouper }}</h3>
+            <div class="d-inline-flex gap-2">
+                <button class="btn btn-light rounded-circle prev-btn"
+                        onclick="scrollMenu('slider-{{ loop.index }}', -300)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn btn-light rounded-circle next-btn"
+                        onclick="scrollMenu('slider-{{ loop.index }}', 300)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="d-flex overflow-hidden" id="slider-{{ loop.index }}" style="scroll-behavior: smooth;">
+            {% for item in category.list %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ item.image_url or 'https://via.placeholder.com/400x300?text=Món+Ăn' }}"
+                         class="card-img-top rounded" alt="{{ item.name }}">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold">{{ item.name }}</h5>
+                        <p class="card-text text-muted small">{{ item.description|truncate(60) }}</p>
+                        <p class="fw-bold text-primary mb-2">{{ "{:,.0f} đ".format(item.price) }}</p>
+                        <a href="{{ url_for('customer.view_menu_item', menu_item_id=item.id) }}"
+                           class="btn btn-outline-primary rounded-pill mt-auto">
+                            <i class="fas fa-eye me-1"></i> Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
     </div>
     {% endfor %}
 </div>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/customer/restaurant_detail.css') }}">
+<script src="{{ url_for('static', filename='js/customer/restaurant_detail.js') }}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const toggleBtn   = document.getElementById('toggleReviews');
+  const reviewItems = document.querySelectorAll('#reviewContainer .review-item');
+
+  if (!toggleBtn) return;
+
+  // Ẩn các review từ index 2 trở đi
+  function collapseReviews() {
+    reviewItems.forEach((el, idx) => {
+      el.style.display = idx < 2 ? 'block' : 'none';
+    });
+    toggleBtn.dataset.expanded = 'false';
+  }
+
+
+
+  // Ôn khởi tạo: collapse ngay về 2 cái đầu
+  collapseReviews();
+
+  // Gắn handler
+  toggleBtn.addEventListener('click', () => {
+    if (toggleBtn.dataset.expanded === 'true') {
+      collapseReviews();
+    } else {
+      expandReviews();
+    }
+  });
+});
+</script>
+
 {% endblock %}
