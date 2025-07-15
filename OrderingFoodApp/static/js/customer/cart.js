@@ -1,8 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const totalPriceElem = document.getElementById('totalPrice');
-  const cartForm = document.getElementById('cartForm');
+  const totalPriceElem   = document.getElementById('totalPrice');
+  const cartForm         = document.getElementById('cartForm');
+  const cartContainer    = document.getElementById('cartContainer');
+  const continueUrl   = cartContainer.dataset.continueUrl;
 
-  // Tính lại tổng tiền
+
   function updateTotal() {
     let total = 0;
     document.querySelectorAll('.item-checkbox').forEach(cb => {
@@ -11,42 +13,35 @@ document.addEventListener('DOMContentLoaded', () => {
     totalPriceElem.textContent = total.toLocaleString('vi-VN') + ' đ';
   }
 
-  // Event delegation trên toàn form
+  function cleanEmptyShops() {
+    document.querySelectorAll('.shop-block').forEach(shop => {
+      if (!shop.querySelector('.cart-item')) shop.remove();
+    });
+  }
+
+  function checkEmptyCart() {
+    // nếu không còn cart-item nào, show empty message
+    if (document.querySelectorAll('.cart-item').length === 0) {
+      cartContainer.innerHTML = `
+        <p class="alert alert-info mt-4">
+          Giỏ hàng trống.
+          <a href="${continueUrl}" class="text-success">Tiếp tục mua sắm</a>
+        </p>`;
+    }
+  }
+
   cartForm.addEventListener('click', async e => {
-    // Checkbox món
-    if (e.target.matches('.item-checkbox')) {
-      updateTotal();
-      return;
-    }
-
-    // Checkbox shop
-    if (e.target.matches('.select-shop')) {
-      const shopItems = e.target.closest('.shop-block')
-                            .querySelectorAll('.item-checkbox');
-      shopItems.forEach(cb => cb.checked = e.target.checked);
-      updateTotal();
-      return;
-    }
-
-    // Checkbox global
-    if (e.target.matches('#selectAllGlobal')) {
-      const flg = e.target.checked;
-      document.querySelectorAll('.item-checkbox, .select-shop')
-              .forEach(cb => cb.checked = flg);
-      updateTotal();
-      return;
-    }
-
-    // Tăng/Giảm/Xoá
-    if (e.target.matches('.btn-increase, .btn-decrease, .btn-remove')) {
+    // tìm xem có phải click lên nút + / – / Xóa không
+    const btn = e.target.closest('.btn-increase, .btn-decrease, .btn-remove');
+    if (btn) {
       e.preventDefault();
-      const btn = e.target.closest('button');
+      e.stopPropagation();
+
       const cartItem = btn.closest('.cart-item');
-      const itemId = cartItem.dataset.itemId;
-      let action;
-      if (btn.matches('.btn-increase')) action = 'increase';
-      else if (btn.matches('.btn-decrease')) action = 'decrease';
-      else action = 'remove';
+      const itemId   = cartItem.dataset.itemId;
+      const action   = btn.matches('.btn-remove')    ? 'remove'
+                       : btn.matches('.btn-increase') ? 'increase'
+                       : 'decrease';
 
       const res = await fetch('/customer/cart', {
         method: 'POST',
@@ -57,21 +52,50 @@ document.addEventListener('DOMContentLoaded', () => {
         body: new URLSearchParams({ action, item_id: itemId })
       });
 
-      // Xử lý kết quả
       if (action === 'remove') {
         cartItem.remove();
         updateTotal();
+        cleanEmptyShops();
+        checkEmptyCart();
       } else {
         const data = await res.json();
         if (data.quantity > 0) {
           cartItem.querySelector('.quantity-input').value = data.quantity;
-          cartItem.querySelector('.item-checkbox').dataset.subtotal = data.subtotal;
-          if (cartItem.querySelector('.item-checkbox').checked) updateTotal();
+          cartItem.querySelector('.item-checkbox')
+                  .dataset.subtotal = data.subtotal;
+          if (cartItem.querySelector('.item-checkbox').checked) {
+            updateTotal();
+          }
         } else {
           cartItem.remove();
           updateTotal();
+          cleanEmptyShops();
+          checkEmptyCart();
         }
       }
+      return;
+    }
+
+    // checkbox món
+    if (e.target.matches('.item-checkbox')) {
+      updateTotal();
+      return;
+    }
+    // checkbox shop
+    if (e.target.matches('.select-shop')) {
+      const shopItems = e.target.closest('.shop-block')
+                            .querySelectorAll('.item-checkbox');
+      shopItems.forEach(cb => cb.checked = e.target.checked);
+      updateTotal();
+      return;
+    }
+    // checkbox toàn cục
+    if (e.target.matches('#selectAllGlobal')) {
+      const flg = e.target.checked;
+      document.querySelectorAll('.item-checkbox, .select-shop')
+              .forEach(cb => cb.checked = flg);
+      updateTotal();
+      return;
     }
   });
 });

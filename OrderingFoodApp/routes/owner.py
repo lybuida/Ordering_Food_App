@@ -1,6 +1,12 @@
 # owner.py
+from datetime import time
+
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for
 from flask_login import login_required, current_user
+
+from OrderingFoodApp.dao import restaurants_owner
+from OrderingFoodApp.dao.restaurants_owner import RestaurantDAO
+# from OrderingFoodApp.dao.restaurants_owner import RestaurantDAO
 from OrderingFoodApp.models import *
 from OrderingFoodApp.dao.order_owner import OrderDAO
 from flask import flash
@@ -8,19 +14,13 @@ from werkzeug.utils import secure_filename
 import os
 from OrderingFoodApp.dao.menu_owner import MenuDAO
 from flask import current_app
+from sqlalchemy import func
 
 owner_bp = Blueprint('owner', __name__, url_prefix='/owner')
 
-##HOME
-# @owner_bp.route('/')
-# @login_required
-# def index():
-#     owner = User.query.filter_by(id=current_user.id).first()
-#     return render_template('owner/index.html', user=owner)
-####HOME
 
-from sqlalchemy import func
-# owner.py (phần route index)
+####HOME
+# owner.py
 @owner_bp.route('/')
 @login_required
 def index():
@@ -61,10 +61,10 @@ def index():
         Restaurant.owner_id == current_user.id
     ).order_by(Review.created_at.desc()).limit(2).all()
 
-    # Thông tin nhà hàng (lấy nhà hàng đầu tiên)
-    restaurant = db.session.query(Restaurant).filter(
-        Restaurant.owner_id == current_user.id
-    ).first()
+    # # Thông tin nhà hàng (lấy nhà hàng đầu tiên)
+    # restaurant = db.session.query(Restaurant).filter(
+    #     Restaurant.owner_id == current_user.id
+    # ).first()
 
     # Chuẩn bị danh sách đơn hàng mới cho template
     formatted_new_orders = []
@@ -93,21 +93,302 @@ def index():
             'comment': review.comment,
             'created_at': review.created_at.strftime('%d/%m/%Y')
         })
+        # Lấy danh sách nhà hàng của owner
+        restaurants = Restaurant.query.filter_by(owner_id=current_user.id).all()
 
-    return render_template('owner/index.html',
-                           user=owner,
-                           orders_today=orders_today,
-                           revenue_today=revenue_today,
-                           pending_orders=pending_orders,
-                           new_orders=formatted_new_orders,
-                           recent_reviews=formatted_reviews,
-                           restaurant=restaurant)
+        return render_template('owner/index.html',
+                               user=owner,
+                               orders_today=orders_today,
+                               revenue_today=revenue_today,
+                               pending_orders=pending_orders,
+                               new_orders=formatted_new_orders,
+                               recent_reviews=formatted_reviews,
+                               restaurants=restaurants)
 
 ##RES
+### RESTAURANTS
 @owner_bp.route('/restaurants')
+@login_required
 def owner_restaurants():
-    return render_template('owner/restaurants.html')
+    restaurants = RestaurantDAO.get_restaurants_by_owner(current_user.id)
+    return render_template('owner/restaurants.html',
+                           restaurants=restaurants,
+                           current_restaurant=None)
 
+
+@owner_bp.route('/restaurants/<int:restaurant_id>')
+@login_required
+def restaurant_details(restaurant_id):
+    restaurant = RestaurantDAO.get_restaurant_by_id(restaurant_id)
+    if not restaurant or restaurant.owner_id != current_user.id:
+        flash('Nhà hàng không tồn tại hoặc bạn không có quyền truy cập', 'danger')
+        return redirect(url_for('owner.owner_restaurants'))
+
+    branches = RestaurantDAO.get_branches_by_restaurant(restaurant_id)
+    return render_template('owner/restaurants.html',
+                           restaurants=None,
+                           current_restaurant=restaurant,
+                           branches=branches)
+
+
+@owner_bp.route('/restaurants/add', methods=['GET', 'POST'])
+@login_required
+def add_restaurant():
+    if request.method == 'POST':
+        try:
+            name = request.form.get('name')
+            description = request.form.get('description')
+            address = request.form.get('address')
+            phone = request.form.get('phone')
+            opening_time = time.fromisoformat(request.form.get('opening_time'))
+            closing_time = time.fromisoformat(request.form.get('closing_time'))
+
+            # Validate required fields
+            if not all([name, address, phone, opening_time, closing_time]):
+                flash('Vui lòng điền đầy đủ thông tin bắt buộc', 'danger')
+                return redirect(url_for('owner.add_restaurant'))
+
+            # Handle image upload
+            image_url = None
+            if 'image' in request.files:
+                image_file = request.files['image']
+                if image_file and allowed_file(image_file.filename):
+                    filename = secure_filename(image_file.filename)
+                    upload_folder = os.path.join(current_app.root_path, 'static/uploads/restaurants')
+                    os.makedirs(upload_folder, exist_ok=True)
+                    filepath = os.path.join(upload_folder, filename)
+                    image_file.save(filepath)
+                    image_url = f'/static/uploads/restaurants/{filename}'
+
+            # Create restaurant
+            restaurant = RestaurantDAO.create_restaurant(
+                owner_id=current_user.id,
+                name=name,
+                description=description,
+                address=address,
+                phone=phone,
+                opening_time=opening_time,
+                closing_time=closing_time,
+                image_url=image_url
+            )
+
+            flash('Thêm nhà hàng thành công', 'success')
+            return redirect(url_for('owner.restaurant_details', restaurant_id=restaurant.id))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Có lỗi xảy ra: {str(e)}', 'danger')
+            return redirect(url_for('owner.add_restaurant'))
+
+    return render_template('owner/restaurant_form.html', restaurant=None)
+
+
+@owner_bp.route('/restaurants/<int:restaurant_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_restaurant(restaurant_id):
+    restaurant = RestaurantDAO.get_restaurant_by_id(restaurant_id)
+    if not restaurant or restaurant.owner_id != current_user.id:
+        flash('Nhà hàng không tồn tại hoặc bạn không có quyền chỉnh sửa', 'danger')
+        return redirect(url_for('owner.owner_restaurants'))
+
+    if request.method == 'POST':
+        try:
+            name = request.form.get('name')
+            description = request.form.get('description')
+            address = request.form.get('address')
+            phone = request.form.get('phone')
+            opening_time = time.fromisoformat(request.form.get('opening_time'))
+            closing_time = time.fromisoformat(request.form.get('closing_time'))
+
+            # Handle image upload
+            if 'image' in request.files:
+                image_file = request.files['image']
+                if image_file and allowed_file(image_file.filename):
+                    filename = secure_filename(image_file.filename)
+                    upload_folder = os.path.join(current_app.root_path, 'static/uploads/restaurants')
+                    os.makedirs(upload_folder, exist_ok=True)
+                    filepath = os.path.join(upload_folder, filename)
+                    image_file.save(filepath)
+                    image_url = f'/static/uploads/restaurants/{filename}'
+                    restaurant.image_url = image_url
+
+            # Update restaurant
+            RestaurantDAO.update_restaurant(
+                restaurant_id=restaurant_id,
+                name=name,
+                description=description,
+                address=address,
+                phone=phone,
+                opening_time=opening_time,
+                closing_time=closing_time
+            )
+
+            flash('Cập nhật nhà hàng thành công', 'success')
+            return redirect(url_for('owner.restaurant_details', restaurant_id=restaurant_id))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Có lỗi xảy ra: {str(e)}', 'danger')
+
+    return render_template('owner/restaurant_form.html', restaurant=restaurant)
+
+
+@owner_bp.route('/restaurants/<int:restaurant_id>/delete', methods=['POST'])
+@login_required
+def delete_restaurant(restaurant_id):
+    restaurant = RestaurantDAO.get_restaurant_by_id(restaurant_id)
+    if not restaurant or restaurant.owner_id != current_user.id:
+        flash('Nhà hàng không tồn tại hoặc bạn không có quyền xóa', 'danger')
+        return redirect(url_for('owner.owner_restaurants'))
+
+    try:
+        RestaurantDAO.delete_restaurant(restaurant_id)
+        flash('Xóa nhà hàng thành công', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Có lỗi xảy ra: {str(e)}', 'danger')
+
+    return redirect(url_for('owner.owner_restaurants'))
+
+
+### BRANCHES
+@owner_bp.route('/branches/add/<int:restaurant_id>', methods=['GET', 'POST'])
+@login_required
+def add_branch(restaurant_id):
+    restaurant = RestaurantDAO.get_restaurant_by_id(restaurant_id)
+    if not restaurant or restaurant.owner_id != current_user.id:
+        flash('Nhà hàng không tồn tại hoặc bạn không có quyền thêm chi nhánh', 'danger')
+        return redirect(url_for('owner.owner_restaurants'))
+
+    if request.method == 'POST':
+        try:
+            name = request.form.get('name')
+            address = request.form.get('address')
+            phone = request.form.get('phone')
+            opening_time = time.fromisoformat(request.form.get('opening_time'))
+            closing_time = time.fromisoformat(request.form.get('closing_time'))
+            status = request.form.get('status', 'active')
+
+            # Validate required fields
+            if not all([name, address, phone, opening_time, closing_time]):
+                flash('Vui lòng điền đầy đủ thông tin bắt buộc', 'danger')
+                return redirect(url_for('owner.add_branch', restaurant_id=restaurant_id))
+
+            # Handle image upload
+            image_url = None
+            if 'image' in request.files:
+                image_file = request.files['image']
+                if image_file and allowed_file(image_file.filename):
+                    filename = secure_filename(image_file.filename)
+                    upload_folder = os.path.join(current_app.root_path, 'static/uploads/branches')
+                    os.makedirs(upload_folder, exist_ok=True)
+                    filepath = os.path.join(upload_folder, filename)
+                    image_file.save(filepath)
+                    image_url = f'/static/uploads/branches/{filename}'
+
+            # Create branch
+            branch = RestaurantDAO.create_branch(
+                restaurant_id=restaurant_id,
+                name=name,
+                address=address,
+                phone=phone,
+                opening_time=opening_time,
+                closing_time=closing_time,
+                status=status,
+                image_url=image_url
+            )
+
+            flash('Thêm chi nhánh thành công', 'success')
+            return redirect(url_for('owner.restaurant_details', restaurant_id=restaurant_id))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Có lỗi xảy ra: {str(e)}', 'danger')
+            return redirect(url_for('owner.add_branch', restaurant_id=restaurant_id))
+
+    return render_template('owner/branch_form.html',
+                           restaurant=restaurant,
+                           branch=None)
+
+
+@owner_bp.route('/branches/<int:branch_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_branch(branch_id):
+    branch = RestaurantDAO.get_branch_by_id(branch_id)
+    if not branch:
+        flash('Chi nhánh không tồn tại', 'danger')
+        return redirect(url_for('owner.owner_restaurants'))
+
+    restaurant = RestaurantDAO.get_restaurant_by_id(branch.restaurant_id)
+    if not restaurant or restaurant.owner_id != current_user.id:
+        flash('Bạn không có quyền chỉnh sửa chi nhánh này', 'danger')
+        return redirect(url_for('owner.owner_restaurants'))
+
+    if request.method == 'POST':
+        try:
+            name = request.form.get('name')
+            address = request.form.get('address')
+            phone = request.form.get('phone')
+            opening_time = time.fromisoformat(request.form.get('opening_time'))
+            closing_time = time.fromisoformat(request.form.get('closing_time'))
+            status = request.form.get('status', 'active')
+
+            # Handle image upload
+            if 'image' in request.files:
+                image_file = request.files['image']
+                if image_file and allowed_file(image_file.filename):
+                    filename = secure_filename(image_file.filename)
+                    upload_folder = os.path.join(current_app.root_path, 'static/uploads/branches')
+                    os.makedirs(upload_folder, exist_ok=True)
+                    filepath = os.path.join(upload_folder, filename)
+                    image_file.save(filepath)
+                    image_url = f'/static/uploads/branches/{filename}'
+                    branch.image_url = image_url
+
+            # Update branch
+            RestaurantDAO.update_branch(
+                branch_id=branch_id,
+                name=name,
+                address=address,
+                phone=phone,
+                opening_time=opening_time,
+                closing_time=closing_time,
+                status=status
+            )
+
+            flash('Cập nhật chi nhánh thành công', 'success')
+            return redirect(url_for('owner.restaurant_details', restaurant_id=restaurant.id))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Có lỗi xảy ra: {str(e)}', 'danger')
+
+    return render_template('owner/branch_form.html',
+                           restaurant=restaurant,
+                           branch=branch)
+
+
+@owner_bp.route('/branches/<int:branch_id>/delete', methods=['POST'])
+@login_required
+def delete_branch(branch_id):
+    branch = RestaurantDAO.get_branch_by_id(branch_id)
+    if not branch:
+        flash('Chi nhánh không tồn tại', 'danger')
+        return redirect(url_for('owner.owner_restaurants'))
+
+    restaurant = RestaurantDAO.get_restaurant_by_id(branch.restaurant_id)
+    if not restaurant or restaurant.owner_id != current_user.id:
+        flash('Bạn không có quyền xóa chi nhánh này', 'danger')
+        return redirect(url_for('owner.owner_restaurants'))
+
+    try:
+        RestaurantDAO.delete_branch(branch_id)
+        flash('Xóa chi nhánh thành công', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Có lỗi xảy ra: {str(e)}', 'danger')
+
+    return redirect(url_for('owner.restaurant_details', restaurant_id=restaurant.id))
 ###MENU
 # @owner_bp.route('/menu')
 # def owner_menu():

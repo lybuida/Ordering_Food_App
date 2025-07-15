@@ -1,0 +1,16 @@
+/* Thêm style cho hình ảnh nhà hàng */
+.img-restaurant {
+    max-height: 200px;
+    object-fit: cover;
+}
+
+/* Style cho bảng */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Style cho thời gian */
+.time-badge {
+    font-size: 0.9rem;
+    padding: 0.35em 0.65em;
+}

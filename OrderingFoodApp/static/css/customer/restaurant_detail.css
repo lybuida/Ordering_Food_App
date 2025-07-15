@@ -93,3 +93,90 @@ body {
     margin-top: 2rem;
 }
 
+/* Nút tròn mặc định */
+.btn.rounded-circle {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    border-radius: 50%;
+    background-color: #fff; /* Nền trắng mặc định */
+    color: var(--primary-color); /* Màu icon mặc định */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    transition: var(--transition);
+}
+
+/* Hover: đổi màu nền và màu icon */
+.btn.rounded-circle:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: #fff; /* Icon trắng khi hover */
+}
+
+/* Active: nhấn nhẹ xuống */
+.btn.rounded-circle:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 6px rgba(67, 97, 238, 0.4);
+}
+
+.btn.rounded-circle:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    background-color: #f1f3f5;
+    color: var(--light-text);
+}
+
+.card .fa-star {
+    color: #f1c40f; /* Màu sao vàng */
+}
+
+.card .fa-user-circle {
+    color: var(--primary-color);
+}
+
+
+.no-review {
+    margin-left: 16px; /* đúng khoảng cách của card */
+    color: var(--light-text);
+    font-size: 1rem;
+}
+
+/* Slider: cho khoảng cách giữa các card */
+[id^="slider-"] {
+  display: flex;           /* đảm bảo flex container */
+  gap: 1rem;               /* khoảng cách 1rem giữa mỗi card */
+  padding-bottom: 1rem;    /* khoảng trắng dưới nếu cần */
+  overflow-x: auto;        /* vẫn giữ scroll */
+  scroll-behavior: smooth; /* smooth scroll */
+}
+
+/* Ép mỗi card target auto width, giữ margin-bottom cũ */
+[id^="slider-"] .col-lg-3,
+[id^="slider-"] .col-md-4,
+[id^="slider-"] .col-sm-6 {
+  flex: 0 0 auto;          /* không co giãn, width mặc định theo class */
+  margin-bottom: 1rem;     /* giữ khoảng cách dưới */
+}
+
+/* Nếu muốn, ẩn scroll bar đẹp hơn */
+[id^="slider-"]::-webkit-scrollbar {
+  height: 6px;
+}
+[id^="slider-"]::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+.review-item {
+  transition: var(--transition);
+}
+
+
+
+
+
+
+
+

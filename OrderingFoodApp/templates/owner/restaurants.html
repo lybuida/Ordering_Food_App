@@ -4,146 +4,159 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="fas fa-store me-2"></i>Quản lý Nhà Hàng</h3>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBranchModal">
-            <i class="fas fa-plus-circle me-1"></i>Thêm chi nhánh
-        </button>
+        <a href="{{ url_for('owner.add_restaurant') }}" class="btn btn-success">
+            <i class="fas fa-plus-circle me-1"></i>Thêm nhà hàng
+        </a>
     </div>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if restaurants %}
     <div class="card shadow-sm mb-4">
-        <div class="card-header bg-success text-white">
-            <i class="fas fa-info-circle me-2"></i>Thông tin chính
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-list me-2"></i>Danh sách nhà hàng của bạn
         </div>
         <div class="card-body">
-            <form>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Tên nhà hàng</label>
-                        <input type="text" class="form-control" value="Nhà hàng ABC">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Logo</label>
-                        <input type="file" class="form-control">
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Mô tả</label>
-                    <textarea class="form-control" rows="3">Nhà hàng chuyên các món ăn Việt Nam truyền thống</textarea>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Địa chỉ chính</label>
-                        <input type="text" class="form-control" value="123 Đường XYZ, Quận 1, TP.HCM">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Giờ mở cửa</label>
-                        <input type="time" class="form-control" value="08:00">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Giờ đóng cửa</label>
-                        <input type="time" class="form-control" value="22:00">
-                    </div>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Ảnh nhà hàng</label>
-                    <input type="file" class="form-control" multiple>
-                    <div class="d-flex flex-wrap mt-2">
-                        <img src="/static/images/restaurant1.jpg" class="img-thumbnail me-2 mb-2" width="100" height="100">
-                        <img src="/static/images/restaurant2.jpg" class="img-thumbnail me-2 mb-2" width="100" height="100">
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i>Lưu thay đổi</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Danh sách chi nhánh -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <i class="fas fa-code-branch me-2"></i>Chi nhánh nhà hàng
-        </div>
-        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-hover">
+                    <thead>
                         <tr>
-                            <th>Tên chi nhánh</th>
+                            <th>Tên nhà hàng</th>
                             <th>Địa chỉ</th>
-                            <th>Giờ hoạt động</th>
+                            <th>Giờ mở cửa</th>
                             <th>Trạng thái</th>
                             <th>Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
+                        {% for restaurant in restaurants %}
                         <tr>
-                            <td>Chi nhánh Quận 1</td>
-                            <td>123 Đường XYZ, Quận 1</td>
-                            <td>08:00 - 22:00</td>
-                            <td><span class="badge bg-success">Đang hoạt động</span></td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
-                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                <a href="{{ url_for('owner.restaurant_details', restaurant_id=restaurant.id) }}">
+                                    {{ restaurant.name }}
+                                </a>
+                            </td>
+                            <td>{{ restaurant.address }}</td>
+                            <td>{{ restaurant.opening_time.strftime('%H:%M') }} - {{ restaurant.closing_time.strftime('%H:%M') }}</td>
+                            <td>
+                                <span class="badge bg-success">Hoạt động</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('owner.edit_restaurant', restaurant_id=restaurant.id) }}" 
+                                   class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ url_for('owner.delete_restaurant', restaurant_id=restaurant.id) }}" 
+                                      method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Bạn có chắc chắn muốn xóa nhà hàng này?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
-                        <tr>
-                            <td>Chi nhánh Quận 3</td>
-                            <td>456 Đường ABC, Quận 3</td>
-                            <td>09:00 - 21:30</td>
-                            <td><span class="badge bg-success">Đang hoạt động</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-edit"></i></button>
-                                <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-</div>
+    {% endif %}
 
-<!-- Modal thêm chi nhánh -->
-<div class="modal fade" id="addBranchModal" tabindex="-1" aria-labelledby="addBranchModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addBranchModalLabel">Thêm chi nhánh mới</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="mb-3">
-                        <label class="form-label">Tên chi nhánh</label>
-                        <input type="text" class="form-control" placeholder="Ví dụ: Chi nhánh Quận 1">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Địa chỉ</label>
-                        <textarea class="form-control" rows="3"></textarea>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Giờ mở cửa</label>
-                            <input type="time" class="form-control">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Giờ đóng cửa</label>
-                            <input type="time" class="form-control">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Số điện thoại</label>
-                        <input type="tel" class="form-control">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary">Thêm chi nhánh</button>
+    {% if current_restaurant %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <i class="fas fa-store me-2"></i>Thông tin nhà hàng: {{ current_restaurant.name }}
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    {% if current_restaurant.image_url %}
+                    <img src="{{ current_restaurant.image_url }}" class="img-fluid rounded mb-3" alt="{{ current_restaurant.name }}">
+                    {% else %}
+                    <img src="/static/images/restaurant-placeholder.jpg" class="img-fluid rounded mb-3" alt="Default image">
+                    {% endif %}
+                </div>
+                <div class="col-md-8">
+                    <h4>{{ current_restaurant.name }}</h4>
+                    <p>{{ current_restaurant.description }}</p>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> {{ current_restaurant.address }}</p>
+                    <p><i class="fas fa-phone me-2"></i> {{ current_restaurant.phone }}</p>
+                    <p><i class="fas fa-clock me-2"></i> Giờ mở cửa: {{ current_restaurant.opening_time.strftime('%H:%M') }} - {{ current_restaurant.closing_time.strftime('%H:%M') }}</p>
+                </div>
             </div>
         </div>
+        <div class="card-footer">
+            <a href="{{ url_for('owner.add_branch', restaurant_id=current_restaurant.id) }}" class="btn btn-success">
+                <i class="fas fa-plus-circle me-1"></i>Thêm chi nhánh
+            </a>
+        </div>
     </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-code-branch me-2"></i>Danh sách chi nhánh
+        </div>
+        <div class="card-body">
+            {% if branches %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tên chi nhánh</th>
+                            <th>Địa chỉ</th>
+                            <th>Giờ mở cửa</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for branch in branches %}
+                        <tr>
+                            <td>{{ branch.name }}</td>
+                            <td>{{ branch.address }}</td>
+                            <td>{{ branch.opening_time.strftime('%H:%M') }} - {{ branch.closing_time.strftime('%H:%M') }}</td>
+                            <td>
+                                {% if branch.status == 'active' %}
+                                <span class="badge bg-success">Hoạt động</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Tạm đóng</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('owner.edit_branch', branch_id=branch.id) }}" 
+                                   class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ url_for('owner.delete_branch', branch_id=branch.id) }}" 
+                                      method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                Nhà hàng này chưa có chi nhánh nào.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
