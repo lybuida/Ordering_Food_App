@@ -238,3 +238,12 @@ def order_detail(order_id):
                            order=order,
                            order_items=order_items,
                            payment=payment)
+
+@customer_bp.route('/restaurant/<int:restaurant_id>/reviews')
+@login_required
+def restaurant_reviews(restaurant_id):
+    restaurant = Restaurant.query.get_or_404(restaurant_id)
+    reviews = restaurant.reviews  # tất cả reviews đã load sẵn quan hệ ORM
+    return render_template('customer/restaurant_reviews.html',
+                           restaurant=restaurant,
+                           reviews=reviews)

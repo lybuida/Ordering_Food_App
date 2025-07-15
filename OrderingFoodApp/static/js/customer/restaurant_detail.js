@@ -25,3 +25,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function scrollMenu(id, amount) {
+        const slider = document.getElementById(id);
+        slider.scrollBy({ left: amount, behavior: 'smooth' });
+    }
+
+    function updateSliderButtons(sliderId) {
+    const slider = document.getElementById(sliderId);
+    const prevBtn = slider.parentElement.querySelector('.prev-btn');
+    const nextBtn = slider.parentElement.querySelector('.next-btn');
+
+    const maxScrollLeft = slider.scrollWidth - slider.clientWidth;
+
+    // Disable nút khi ở đầu hoặc cuối
+    prevBtn.disabled = slider.scrollLeft <= 0;
+    nextBtn.disabled = slider.scrollLeft >= maxScrollLeft;
+
+    // Hoặc ẩn nút nếu ít món
+    if (slider.scrollWidth <= slider.clientWidth) {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+    } else {
+        prevBtn.style.display = 'inline-flex';
+        nextBtn.style.display = 'inline-flex';
+    }
+    }
+
+    // Gọi khi load và khi scroll
+    document.querySelectorAll('[id^=slider-]').forEach(slider => {
+        slider.addEventListener('scroll', () => updateSliderButtons(slider.id));
+        updateSliderButtons(slider.id);
+    });
