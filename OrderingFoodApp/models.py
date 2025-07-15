@@ -1,5 +1,5 @@
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, DateTime, Numeric, Text, Boolean
+from datetime import datetime, time
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Enum, DateTime, Numeric, Text, Boolean,Time
 from sqlalchemy.orm import relationship, backref
 from OrderingFoodApp import db
 from enum import Enum as enum
@@ -89,14 +89,34 @@ class Restaurant(db.Model):
     description = Column(Text)
     address = Column(String(255))
     phone = Column(String(50))
+    opening_time = Column(Time, nullable=False, default=time(8, 0))  # Mặc định 08:00
+    closing_time = Column(Time, nullable=False, default=time(22, 0))  # Mặc định 22:00
     latitude = Column(Float)
     longitude = Column(Float)
     image_url = Column(String(255))  # Thêm dòng này
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # branches = relationship('Branch', back_populates='restaurant', cascade='all, delete-orphan')
     menu_items = relationship('MenuItem', backref='restaurant', lazy=True)
     orders = relationship('Order', backref='restaurant', lazy=True)
     reviews = relationship('Review', backref='restaurant', lazy=True)
+
+
+# ========== BRANCH ==========
+class Branch(db.Model):
+    __tablename__ = 'branches'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    restaurant_id = Column(Integer, ForeignKey('restaurants.id'), nullable=False)
+    name = Column(String(150), nullable=False)
+    address = Column(String(255), nullable=False)
+    phone = Column(String(50))
+    opening_time = Column(Time, nullable=False, default=time(8, 0))  # Mặc định 08:00
+    closing_time = Column(Time, nullable=False, default=time(22, 0))  # Mặc định 22:00 # Đổi từ String sang Time
+    status = Column(String(20), default='active')
+    image_url = Column(String(255))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    restaurant = relationship('Restaurant', backref=backref('branches', lazy=True))
 
 
 # ========== MENU ==========
@@ -228,3 +248,4 @@ class Notification(db.Model):
     message = Column(Text, nullable=False)
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+

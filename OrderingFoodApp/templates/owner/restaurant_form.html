@@ -1,0 +1,75 @@
+{% extends "layout/base.html" %}
+{% block title %}{{ 'Chỉnh sửa' if restaurant else 'Thêm mới' }} Nhà Hàng{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="fas fa-store me-2"></i>{{ 'Chỉnh sửa' if restaurant else 'Thêm mới' }} Nhà Hàng</h3>
+        <a href="{{ url_for('owner.owner_restaurants') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Quay lại
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Tên nhà hàng</label>
+                    <input type="text" class="form-control" id="name" name="name"
+                           value="{{ restaurant.name if restaurant }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Mô tả</label>
+                    <textarea class="form-control" id="description" name="description" rows="3">{{ restaurant.description if restaurant }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="address" class="form-label">Địa chỉ</label>
+                    <input type="text" class="form-control" id="address" name="address"
+                           value="{{ restaurant.address if restaurant }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Số điện thoại</label>
+                    <input type="text" class="form-control" id="phone" name="phone"
+                           value="{{ restaurant.phone if restaurant }}" required>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="opening_time" class="form-label">Giờ mở cửa</label>
+                        <input type="time" class="form-control" id="opening_time" name="opening_time"
+                               value="{{ restaurant.opening_time.strftime('%H:%M') if restaurant else '08:00' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="closing_time" class="form-label">Giờ đóng cửa</label>
+                        <input type="time" class="form-control" id="closing_time" name="closing_time"
+                               value="{{ restaurant.closing_time.strftime('%H:%M') if restaurant else '22:00' }}" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="image" class="form-label">Hình ảnh</label>
+                    <input class="form-control" type="file" id="image" name="image" accept="image/*">
+                    {% if restaurant and restaurant.image_url %}
+                        <div class="mt-2">
+                            <img src="{{ restaurant.image_url }}" class="img-thumbnail" width="150" alt="Current image">
+                            <p class="text-muted small mt-1">Ảnh hiện tại</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Lưu
+                    </button>
+                    <a href="{{ url_for('owner.owner_restaurants') }}" class="btn btn-outline-secondary">
+                        Hủy
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
