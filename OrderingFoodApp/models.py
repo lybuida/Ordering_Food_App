@@ -96,7 +96,7 @@ class Restaurant(db.Model):
     image_url = Column(String(255))  # Thêm dòng này
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # branches = relationship('Branch', back_populates='restaurant', cascade='all, delete-orphan')
+
     menu_items = relationship('MenuItem', backref='restaurant', lazy=True)
     orders = relationship('Order', backref='restaurant', lazy=True)
     reviews = relationship('Review', backref='restaurant', lazy=True)
