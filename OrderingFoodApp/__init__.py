@@ -27,6 +27,8 @@ def init_app():
     app.config[
         "SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:01676831139Chi%40@localhost:3306/db_orderingfood?charset=utf8mb4"
 
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Votanhuy%40123@localhost:3306/db_orderingfood?charset=utf8mb4'
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # ====== INITIALIZE EXTENSIONS ======
@@ -47,8 +49,13 @@ def init_app():
 
     login_manager.login_message_category = 'info'
 
+    # ====== IMPORT ADMIN BLUEPRINTS ======
+    # Import Blueprints
+    from routes.admin import admin_bp
+
     # ====== IMPORT MODELS ======
     from OrderingFoodApp import models  # Import models để Flask-Migrate nhận diện
+
 
     # ====== REGISTER BLUEPRINTS ======
     from OrderingFoodApp.routes.auth import auth_bp

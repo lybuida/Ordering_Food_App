@@ -1,0 +1,73 @@
+{# templates/admin/restaurants/edit.html #}
+{% extends 'layout/base.html' %}
+
+{% block title %}Chỉnh Sửa Nhà Hàng{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="mb-4">Chỉnh Sửa Nhà Hàng: {{ restaurant.name }}</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-3">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.edit_restaurant', restaurant_id=restaurant.id) }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Tên Nhà Hàng</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ restaurant.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ restaurant.description }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Địa chỉ</label>
+                            <input type="text" class="form-control" id="address" name="address" value="{{ restaurant.address }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Số điện thoại</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="{{ restaurant.phone }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="owner_id" class="form-label">Chủ sở hữu (Phải là tài khoản OWNER)</label>
+                            <select class="form-select" id="owner_id" name="owner_id" required>
+                                <option value="">-- Chọn Chủ sở hữu --</option>
+                                {% for owner in owners %} {# 'owners' sẽ được truyền từ route #}
+                                    <option value="{{ owner.id }}" {% if restaurant.owner_id == owner.id %}selected{% endif %}>
+                                        {{ owner.name }} ({{ owner.email }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="image_url" class="form-label">URL ảnh (tùy chọn)</label>
+                            <input type="url" class="form-control" id="image_url" name="image_url" value="{{ restaurant.image_url or '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="latitude" class="form-label">Vĩ độ (Latitude)</label>
+                            <input type="text" class="form-control" id="latitude" name="latitude" value="{{ restaurant.latitude or '' }}" placeholder="Ví dụ: 10.762622">
+                        </div>
+                        <div class="mb-3">
+                            <label for="longitude" class="form-label">Kinh độ (Longitude)</label>
+                            <input type="text" class="form-control" id="longitude" name="longitude" value="{{ restaurant.longitude or '' }}" placeholder="Ví dụ: 106.660172">
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <a href="{{ url_for('admin.restaurants_management') }}" class="btn btn-secondary me-2">Hủy</a>
+                            <button type="submit" class="btn btn-primary">Cập Nhật</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

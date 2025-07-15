@@ -1,7 +1,8 @@
 # order_owner.py
-from OrderingFoodApp.models import Order, OrderItem, User, Restaurant, db, Notification, NotificationType
+from OrderingFoodApp.models import Order, OrderItem, User, Restaurant, db, Notification, NotificationType, OrderStatus
 from sqlalchemy import func, and_, or_
 from datetime import datetime, timedelta
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class OrderDAO:
@@ -151,3 +152,38 @@ class OrderDAO:
             })
 
         return order_details
+
+def count_orders_by_status(status=None):
+    """
+    Đếm tổng số đơn hàng hoặc số đơn hàng theo trạng thái cụ thể.
+    Args:
+        status (OrderStatus, optional): Trạng thái cần đếm. Nếu None, đếm tất cả đơn hàng.
+    Returns:
+        int: Tổng số đơn hàng.
+    """
+    try:
+        query = db.session.query(Order)
+        if status:
+            query = query.filter_by(status=status)
+        return query.count()
+    except SQLAlchemyError as e:
+        print(f"Error counting orders by status: {e}")
+        return 0
+
+def get_total_revenue(status=OrderStatus.COMPLETED):
+    """
+    Tính tổng doanh thu từ các đơn hàng (mặc định là đơn hàng đã giao thành công).
+    Args:
+        status (OrderStatus): Trạng thái đơn hàng để tính doanh thu.
+    Returns:
+        float: Tổng doanh thu.
+    """
+    try:
+        # Sum total_amount from orders with the specified status
+        total_revenue = db.session.query(func.sum(Order.total_amount))\
+                            .filter(Order.status == status)\
+                            .scalar()
+        return float(total_revenue) if total_revenue else 0.0
+    except SQLAlchemyError as e:
+        print(f"Error calculating total revenue: {e}")
+        return 0.0

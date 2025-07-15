@@ -79,6 +79,28 @@ class User(db.Model):
     def get_id(self):
         return str(self.id)
 
+    # ==========================================================
+    # THÊM CÁC PHƯƠNG THỨC PROPERTY
+    # ==========================================================
+    @property
+    def is_admin(self):
+        """Kiểm tra xem người dùng có vai trò ADMIN hay không."""
+        return self.role == UserRole.ADMIN
+
+    @property
+    def is_owner(self):
+        """Kiểm tra xem người dùng có vai trò OWNER hay không."""
+        return self.role == UserRole.OWNER
+
+    @property
+    def is_customer(self):
+        """Kiểm tra xem người dùng có vai trò CUSTOMER hay không."""
+        return self.role == UserRole.CUSTOMER
+    # ==========================================================
+
+    def __repr__(self):
+        return f'<User {self.email} - {self.role.value}>'
+
 
 # ========== RESTAURANT ==========
 class Restaurant(db.Model):

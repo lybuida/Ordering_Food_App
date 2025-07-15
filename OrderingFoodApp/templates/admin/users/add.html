@@ -1,0 +1,56 @@
+{# templates/admin/users/add.html #}
+{% extends 'layout/base.html' %}
+
+{% block title %}Thêm Người Dùng Mới{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="mb-4">Thêm Người Dùng Mới</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-3">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.add_user') }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Tên người dùng</label>
+                            <input type="text" class="form-control" id="name" name="name" required value="{{ request.form.name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required value="{{ request.form.email }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Vai trò</label>
+                            <select class="form-select" id="role" name="role" required>
+                                {% for role in UserRole %}
+                                    <option value="{{ role.value }}" {% if request.form.role == role.value %}selected{% endif %}>
+                                        {{ role.value.capitalize() }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <a href="{{ url_for('admin.users_management') }}" class="btn btn-secondary me-2">Hủy</a>
+                            <button type="submit" class="btn btn-primary">Thêm Người Dùng</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
