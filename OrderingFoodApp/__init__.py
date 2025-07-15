@@ -48,10 +48,6 @@ def init_app():
 
     login_manager.login_message_category = 'info'
 
-    # ====== IMPORT ADMIN BLUEPRINTS ======
-    # Import Blueprints
-    from routes.admin import admin_bp
-
     # ====== IMPORT MODELS ======
     from OrderingFoodApp import models  # Import models để Flask-Migrate nhận diện
 
