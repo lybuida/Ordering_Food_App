@@ -64,6 +64,7 @@
 
 
     <!-- Thực đơn nhóm theo loại (Slider ngang) -->
+    <!-- Trong file: templates/customer/restaurant_detail.html -->
     {% for category in restaurant.menu_items|groupby('category.name') %}
     <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -80,25 +81,37 @@
             </div>
         </div>
 
-        <div class="d-flex overflow-hidden" id="slider-{{ loop.index }}" style="scroll-behavior: smooth;">
+        <div id="slider-{{ loop.index }}" class="d-flex overflow-hidden">
             {% for item in category.list %}
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <img src="{{ item.image_url or 'https://via.placeholder.com/400x300?text=Món+Ăn' }}"
-                         class="card-img-top rounded" alt="{{ item.name }}">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold">{{ item.name }}</h5>
-                        <p class="card-text text-muted small">{{ item.description|truncate(60) }}</p>
-                        <p class="fw-bold text-primary mb-2">{{ "{:,.0f} đ".format(item.price) }}</p>
-                        <a href="{{ url_for('customer.view_menu_item', menu_item_id=item.id) }}"
-                           class="btn btn-outline-primary rounded-pill mt-auto">
-                            <i class="fas fa-eye me-1"></i> Xem chi tiết
-                        </a>
-                    </div>
+                <div class="card h-100 shadow-sm d-flex flex-column">
+
+                    <!-- Link toàn bộ card (click bất kỳ vào card sẽ vào detail) -->
+                    <a href="{{ url_for('customer.view_menu_item', menu_item_id=item.id) }}"
+                       class="text-decoration-none text-reset flex-grow-1">
+                        <img src="{{ item.image_url or 'https://via.placeholder.com/400x300?text=Món+Ăn' }}"
+                             class="card-img-top rounded-top" alt="{{ item.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold mb-1">{{ item.name }}</h5>
+                            <p class="card-text text-muted small mb-3">{{ item.description|truncate(60) }}</p>
+
+                            <!-- price + cart button cùng 1 hàng -->
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="fw-bold text-primary">{{ "{:,.0f} đ".format(item.price) }}</span>
+                                <!-- placeholder để căn lề phải, nhưng nhấn trên icon sẽ stopPropagation -->
+                                <button type="button"
+                                        class="btn btn-circle btn-addcart"
+                                        data-id="{{ item.id }}"
+                                        onclick="event.stopPropagation();">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </a>
+
                 </div>
             </div>
             {% endfor %}
-
         </div>
     </div>
     {% endfor %}
@@ -108,34 +121,34 @@
 <script src="{{ url_for('static', filename='js/customer/restaurant_detail.js') }}"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const toggleBtn   = document.getElementById('toggleReviews');
-  const reviewItems = document.querySelectorAll('#reviewContainer .review-item');
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn   = document.getElementById('toggleReviews');
+      const reviewItems = document.querySelectorAll('#reviewContainer .review-item');
 
-  if (!toggleBtn) return;
+      if (!toggleBtn) return;
 
-  // Ẩn các review từ index 2 trở đi
-  function collapseReviews() {
-    reviewItems.forEach((el, idx) => {
-      el.style.display = idx < 2 ? 'block' : 'none';
-    });
-    toggleBtn.dataset.expanded = 'false';
-  }
+      // Ẩn các review từ index 2 trở đi
+      function collapseReviews() {
+        reviewItems.forEach((el, idx) => {
+          el.style.display = idx < 2 ? 'block' : 'none';
+        });
+        toggleBtn.dataset.expanded = 'false';
+      }
 
 
 
-  // Ôn khởi tạo: collapse ngay về 2 cái đầu
-  collapseReviews();
-
-  // Gắn handler
-  toggleBtn.addEventListener('click', () => {
-    if (toggleBtn.dataset.expanded === 'true') {
+      // Ôn khởi tạo: collapse ngay về 2 cái đầu
       collapseReviews();
-    } else {
-      expandReviews();
-    }
-  });
-});
+
+      // Gắn handler
+      toggleBtn.addEventListener('click', () => {
+        if (toggleBtn.dataset.expanded === 'true') {
+          collapseReviews();
+        } else {
+          expandReviews();
+        }
+      });
+    });
 </script>
 
 {% endblock %}

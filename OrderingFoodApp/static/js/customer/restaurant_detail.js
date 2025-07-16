@@ -26,6 +26,116 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.btn-addcart').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const itemId = btn.dataset.id;
+      // Gửi AJAX thêm vào cart
+      const res = await fetch('/customer/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new URLSearchParams({
+          action: 'add',
+          item_id: itemId,
+          quantity: 1
+        })
+      });
+      if (res.ok) {
+        // cho hiệu ứng đã thêm
+        btn.classList.add('added');
+        // (tuỳ chọn) disable để ko nhấn lại
+        // btn.disabled = true;
+      } else {
+        console.error('Không thêm được vào giỏ hàng');
+      }
+    });
+  });
+});
+
+// static/js/customer/restaurant_detail.js
+document.addEventListener('DOMContentLoaded', () => {
+  const cartCount = document.getElementById('cartCount');
+
+  document.querySelectorAll('.btn-addcart').forEach(btn => {
+    // bọc nút trong relative để +1 position chính xác
+    btn.style.position = 'relative';
+
+    btn.addEventListener('click', async () => {
+      const itemId = btn.dataset.id;
+      // 1) Gửi AJAX
+      const res = await fetch('/customer/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new URLSearchParams({
+          action:   'add',
+          item_id:  itemId,
+          quantity: 1
+        })
+      });
+
+      if (!res.ok) {
+        console.error('❌ Thêm giỏ hàng thất bại');
+        return;
+      }
+
+      // 2) Hiệu ứng nút
+      btn.classList.add('added');
+      setTimeout(() => btn.classList.remove('added'), 600);
+
+      // 3) +1 animation
+      const plus = document.createElement('div');
+      plus.textContent = '+1';
+      plus.className = 'pop-up-plus';
+      // căn giữa ngang, nằm trên btn
+      plus.style.left   = '50%';
+      plus.style.top    = '10%';
+      plus.style.transform = 'translateX(-50%)';
+      btn.appendChild(plus);
+      // tự remove sau animation
+      plus.addEventListener('animationend', () => plus.remove());
+    });
+  });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.btn-addcart').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      // ngăn chặn link bọc ngoài (và form submit nếu có)
+      e.stopPropagation();
+      e.preventDefault();
+
+      const itemId = btn.dataset.id;
+      const res = await fetch('/customer/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new URLSearchParams({
+          action: 'add',
+          item_id: itemId,
+          quantity: 1
+        })
+      });
+
+      if (res.ok) {
+        btn.classList.add('added');
+        setTimeout(() => btn.classList.remove('added'), 1000);
+      } else {
+        console.error('Không thêm được vào giỏ hàng');
+      }
+    });
+  });
+});
+
+
+
 function scrollMenu(id, amount) {
         const slider = document.getElementById(id);
         slider.scrollBy({ left: amount, behavior: 'smooth' });

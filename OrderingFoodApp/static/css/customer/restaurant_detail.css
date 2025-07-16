@@ -173,7 +173,74 @@ body {
   transition: var(--transition);
 }
 
+/* Nút tròn giỏ hàng */
+.btn-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
 
+/* Hover */
+.btn-circle:hover {
+  background: var(--accent-color);
+  color: #fff;
+  border-color: var(--accent-color);
+}
+
+/* Khi đã thêm vào giỏ hàng */
+.btn-circle.added {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+
+/* nhỏ gọn cho +1 */
+.pop-up-plus {
+  position: absolute;
+  font-size: .9rem;
+  color: var(--success-color);
+  font-weight: bold;
+  animation: popUp 0.8s forwards;
+  pointer-events: none;
+}
+
+@keyframes popUp {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-30px) scale(1.4); }
+}
+
+/* khi button được click */
+.btn-circle.added {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: #fff;
+}
+
+.btn-circle:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Cho link bọc toàn card */
+.card-link {
+  display: block;          /* để a phủ hết chiều ngang */
+  color: inherit;          /* giữ màu chữ gốc */
+}
+.card-link:hover .card {
+  transform: translateY(-4px) scale(1.01);
+}
+/* bỏ gạch chân */
+.card-link, .card-link:hover {
+  text-decoration: none;
+}
 
 
 

@@ -181,6 +181,19 @@ def cart():
     cart = cart_dao.init_cart()
 
     if request.method == 'POST':
+        action = request.form.get('action')
+        item_id = request.form.get('item_id')
+        qty = request.form.get('quantity', 1, type=int)
+
+        # AJAX?
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            new_cart = cart_dao.update_cart(action, item_id, qty)
+            menu_item = MenuItem.query.get(int(item_id))
+            quantity = new_cart.get(str(item_id), 0)
+            subtotal = float(menu_item.price) * quantity
+            return jsonify({'quantity': quantity, 'subtotal': subtotal})
+
+    if request.method == 'POST':
         action  = request.form.get('action')
         item_id = request.form.get('item_id')
         if not item_id:
