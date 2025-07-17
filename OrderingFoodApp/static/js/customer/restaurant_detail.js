@@ -134,8 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-
-
 function scrollMenu(id, amount) {
         const slider = document.getElementById(id);
         slider.scrollBy({ left: amount, behavior: 'smooth' });

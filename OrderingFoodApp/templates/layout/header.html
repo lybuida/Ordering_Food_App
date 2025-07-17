@@ -30,7 +30,10 @@
                 {% elif current_user.role == UserRole.CUSTOMER %}
                 <li class="nav-item"><a class="nav-link" href="/customer/restaurants_list"><i class="fas fa-store-alt me-1"></i>Nhà hàng</a></li>
                 <li class="nav-item"><a class="nav-link" href="/customer/cart"><i class="fas fa-shopping-cart me-1" id="cartIcon"></i>Giỏ hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/current_orders"><i class="fas fa-clipboard-list me-1"></i>Đơn hàng</a></li>
                 <li class="nav-item"><a class="nav-link" href="/customer/orders"><i class="fas fa-history me-1"></i>Lịch sử đơn</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/notification"><i class="fas fa-bell me-1"></i>Thông báo</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/account"><i class="fas fa-user me-1"></i>Tài khoản</a></li>
                 {% endif %}
             </ul>
             <div class="d-flex align-items-center">

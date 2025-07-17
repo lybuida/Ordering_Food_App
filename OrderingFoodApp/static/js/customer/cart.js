@@ -99,3 +99,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// Tách riêng sự kiện submit form
+cartForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Thu thập các món được chọn
+    const selectedItems = [];
+    document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
+        const itemId = cb.closest('.cart-item').dataset.itemId;
+        selectedItems.push(itemId);
+    });
+
+    if (selectedItems.length === 0) {
+        alert('Vui lòng chọn ít nhất một món để đặt hàng.');
+        return;
+    }
+
+    // Tạo form ẩn để gửi dữ liệu
+    const formData = new FormData();
+    selectedItems.forEach(itemId => {
+        formData.append('selected_items', itemId);
+    });
+
+    // Gửi request đến route checkout
+    const res = await fetch('/customer/process_checkout', {
+        method: 'POST',
+        body: formData
+    });
+
+    if (res.ok) {
+        // Chuyển hướng đến trang checkout nếu thành công
+        window.location.href = '/customer/checkout';
+    } else {
+        alert('Có lỗi xảy ra khi chuyển đến trang thanh toán');
+    }
+});

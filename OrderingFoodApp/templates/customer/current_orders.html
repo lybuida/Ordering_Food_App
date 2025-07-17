@@ -1,0 +1,171 @@
+{% extends "layout/base.html" %}
+{% block title %}Đơn hàng hiện tại{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-success"><i class="fas fa-clipboard-list me-2"></i>Đơn hàng của bạn</h1>
+
+    {% if orders %}
+    <div class="accordion" id="ordersAccordion">
+        {% for order in orders %}
+        <div class="card mb-3">
+            <div class="card-header bg-light" id="heading{{ order.id }}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-link text-decoration-none w-100 text-start"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#collapse{{ order.id }}"
+                            aria-expanded="true"
+                            aria-controls="collapse{{ order.id }}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="h5 mb-0 me-3">#{{ order.id }}</span>
+                                <span class="me-3">{{ order.restaurant.name }}</span>
+                                <span class="me-3">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                                <span class="badge {{ orders_details[order.id].status_color }} me-3">
+                                        {{ order.status.value|capitalize }}
+                                    </span>
+                            </div>
+                            <div>
+                                <span class="fw-bold text-danger">{{ "{:,.0f} đ".format(order.total_amount) }}</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div id="collapse{{ order.id }}"
+                 class="collapse {% if loop.first %}show{% endif %}"
+                 aria-labelledby="heading{{ order.id }}"
+                 data-bs-parent="#ordersAccordion">
+                <div class="card-body">
+                    <h5>Chi tiết đơn hàng:</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Món ăn</th>
+                                <th>Đơn giá</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in orders_details[order.id].order_items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if item.menu_item.image_url %}
+                                        <img src="{{ item.menu_item.image_url }}"
+                                             alt="{{ item.menu_item.name }}"
+                                             class="me-3 rounded"
+                                             style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% endif %}
+                                        <span>{{ item.menu_item.name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ "{:,.0f} đ".format(item.price) }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ "{:,.0f} đ".format(item.price * item.quantity) }}</td>
+                            </tr>
+                            {% endfor %}
+
+                            {% if order.promo_code %}
+                            <tr>
+                                <td colspan="3" class="text-end">Mã giảm giá:</td>
+                                <td>{{ order.promo_code.code }} ({{ order.promo_code.discount_value }}
+                                    {% if order.promo_code.discount_type == DiscountType.PERCENT %}%
+                                    {% else %}đ{% endif %})
+                                </td>
+                            </tr>
+                            {% endif %}
+
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Tổng cộng:</td>
+                                <td class="fw-bold">{{ "{:,.0f} đ".format(order.total_amount) }}</td>
+                            </tr>
+                            {% if orders_details[order.id].payment %}
+                            <tr>
+                                <td colspan="3" class="text-end">Phương thức thanh toán:</td>
+                                <td>
+                                    {{ orders_details[order.id].payment.method.value|replace('_', ' ')|title }}
+                                    <span class="badge bg-{{ 'success' if orders_details[order.id].payment.status == PaymentStatus.COMPLETED else 'warning' }}">
+                                        {{ orders_details[order.id].payment.status.value }}</span>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Thêm nút hủy đơn hàng cho trạng thái pending -->
+                    {% if order.status == OrderStatus.PENDING %}
+                    <div class="text-end mt-3">
+                        <button class="btn btn-danger btn-cancel-order"
+                                data-order-id="{{ order.id }}">
+                            <i class="fas fa-times me-2"></i>Hủy đơn hàng
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center py-4">
+        <i class="fas fa-info-circle fa-2x mb-3 text-primary"></i>
+        <h4>Bạn chưa có đơn hàng nào đang xử lý</h4>
+        <p class="mt-3">Hãy khám phá các nhà hàng và đặt món ngay!</p>
+        <a href="{{ url_for('customer.restaurants_list') }}" class="btn btn-success btn-lg mt-2">
+            <i class="fas fa-utensils me-2"></i>Đặt hàng ngay
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Tự động mở đơn hàng đầu tiên
+        const firstOrder = document.querySelector('.accordion .collapse');
+        if (firstOrder) {
+            new bootstrap.Collapse(firstOrder, { toggle: true });
+        }
+
+        // Xử lý hủy đơn hàng
+        document.querySelectorAll('.btn-cancel-order').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.dataset.orderId;
+                if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này?')) {
+                    fetch(`/customer/cancel_order/${orderId}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Có lỗi xảy ra: ' + data.message);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .card-header {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .card-header:hover {
+        background-color: #f8f9fa !important;
+    }
+</style>
+{% endblock %}
