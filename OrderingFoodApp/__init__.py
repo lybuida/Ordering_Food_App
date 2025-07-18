@@ -22,11 +22,9 @@ def init_app():
 
     # ====== CONFIGURATION ======
     app.config['SECRET_KEY'] = 'sieu-bi-mat-123'
-    # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:askme@localhost/db_orderingfood?charset=utf8mb4'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:26032004@localhost/db_orderingfood?charset=utf8mb4'
-
-
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Votanhuy%40123@localhost:3306/db_orderingfood?charset=utf8mb4'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:askme@localhost/db_orderingfood?charset=utf8mb4'
+    #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:26032004@localhost/db_orderingfood?charset=utf8mb4'
+    #app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Votanhuy%40123@localhost:3306/db_orderingfood?charset=utf8mb4'
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -51,7 +49,6 @@ def init_app():
     # ====== IMPORT MODELS ======
     from OrderingFoodApp import models  # Import models để Flask-Migrate nhận diện
 
-
     # ====== REGISTER BLUEPRINTS ======
     from OrderingFoodApp.routes.auth import auth_bp
     from OrderingFoodApp.routes.customer import customer_bp
@@ -65,5 +62,8 @@ def init_app():
 
     from OrderingFoodApp.routes.home import home_bp
     app.register_blueprint(home_bp)
+
+    from OrderingFoodApp.routes.profile import profile_bp
+    app.register_blueprint(profile_bp)
 
     return app

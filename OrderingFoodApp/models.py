@@ -46,6 +46,9 @@ class NotificationType(enum):
     PROMO = "promo"
     OTHER = "other"
 
+class Gender(enum):
+    male   = "male"
+    female = "female"
 
 # ========== USER ==========
 class User(db.Model):
@@ -56,6 +59,21 @@ class User(db.Model):
     password = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    # ─── MỚI ──────────────────────────────
+    date_of_birth = Column(DateTime, nullable=True)
+    gender = Column(Enum(Gender), nullable=True)
+    phone = Column(String(20), nullable=True)
+    # Quan hệ với Address
+    addresses = relationship('Address', backref='user', lazy=True)
+
+    @property
+    def default_address(self):
+        for a in self.addresses:
+            if a.is_default:
+                return a.address_line
+        return None
+
+    # ──────────────────────────────────────
 
     restaurants = relationship('Restaurant', backref='owner', lazy=True)
     carts = relationship('Cart', backref='customer', lazy=True)
@@ -272,3 +290,11 @@ class Notification(db.Model):
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
+class Address(db.Model):
+    __tablename__ = 'addresses'
+    id            = Column(Integer, primary_key=True, autoincrement=True)
+    user_id       = Column(Integer, ForeignKey('users.id'), nullable=False)
+    address_line  = Column(String(255), nullable=False)
+    is_default    = Column(Boolean, default=False)
+    created_at    = Column(DateTime, default=datetime.utcnow)

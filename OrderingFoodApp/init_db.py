@@ -193,7 +193,10 @@ def seed_data():
 
 
     db.session.commit()
-    print("✅ Seed thành công: 5 chủ nhà hàng, ~15 nhà hàng, ~180 món ăn, 5 khách hàng.")
+
+# ─── BỔ SUNG PROFILE & ADDRESS CHO TẤT CẢ USER ───
+    # gom tất cả users vừa tạo
+    all_users = [admin] + owners + customers
 
     # ========== TẠO 10 MÃ KHUYẾN MÃI GIẢ ==========
     promo_image_urls = [
@@ -225,6 +228,33 @@ end_date=datetime(2025, 8, random.randint(20, 31)),
 
     db.session.commit()
 
+    for user in all_users:
+        # 1) Gán ngày sinh, giới tính, số điện thoại
+        user.date_of_birth = fake.date_of_birth(minimum_age=18, maximum_age=60)
+        user.gender        = random.choice(list(Gender))
+        user.phone         = fake.phone_number()
+        db.session.add(user)
+
+        # 2) Tạo địa chỉ mặc định
+        addr_def = Address(
+            user_id      = user.id,
+            address_line = fake.address(),
+            is_default   = True
+        )
+        db.session.add(addr_def)
+
+        # 3) Tạo thêm 1–3 địa chỉ phụ
+        for _ in range(random.randint(1, 3)):
+            addr = Address(
+                user_id      = user.id,
+                address_line = fake.address(),
+                is_default   = False
+            )
+            db.session.add(addr)
+
+    db.session.commit()
+
+    print("✅ Seed thành công")
 
 if __name__ == '__main__':
     app = init_app()

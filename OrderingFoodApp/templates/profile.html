@@ -1,0 +1,191 @@
+{% extends 'layout/base.html' %}
+{% block title %}Thông tin cá nhân{% endblock %}
+
+{% block content %}
+<div class="row gy-4 justify-content-center">
+    <!-- Thông tin cá nhân -->
+    <div class="col-lg-6">
+        <div class="card profile-card">
+            <div class="card-body">
+                <h5 class="section-title">Thông tin cá nhân</h5>
+                <form method="post" id="profileForm">
+                    <!-- Họ tên & Email -->
+                    <div class="mb-3">
+                        <label class="form-label">Họ tên</label>
+                        <input type="text" name="name" class="form-control" value="{{ user.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                    </div>
+                    <!-- Ngày sinh & Giới tính -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" name="dob" class="form-control"
+                                   value="{{ user.date_of_birth and user.date_of_birth.strftime('%Y-%m-%d') or '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giới tính</label>
+                            <select name="gender" class="form-select">
+                                <option value="">Chọn giới tính</option>
+                                <option value="male" {% if user.gender and user.gender.value=='male' %}selected{% endif
+                                        %}>Nam
+                                </option>
+                                <option value="female" {% if user.gender and user.gender.value=='female' %}selected{%
+                                        endif %}>Nữ
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Số điện thoại -->
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" name="phone" class="form-control" value="{{ user.phone or '' }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if user.role.value=='customer' %}
+    <!-- Quản lý địa chỉ -->
+    <div class="col-lg-6">
+        <div class="card address-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="section-title">Địa chỉ giao hàng</h5>
+                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addressModal"
+                            id="addAddressBtn">
+                        <i class="fas fa-plus me-1"></i>Thêm địa chỉ
+                    </button>
+                </div>
+                <div class="list-group" id="addressList">
+                    {# 1) Địa chỉ mặc định #}
+                    {% for addr in user.addresses if addr.is_default %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center address-item">
+                        <div>
+                            <span class="badge bg-primary me-1">Mặc định</span>
+                            {{ addr.address_line }}
+                        </div>
+                        <!-- nút edit/delete giữ nguyên -->
+                    </div>
+                    {% endfor %}
+
+                    {# 2) Các địa chỉ phụ #}
+                    {% for addr in user.addresses if not addr.is_default %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center address-item">
+                        <div>{{ addr.address_line }}</div>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary edit-address-btn"
+                                    data-id="{{ addr.id }}"
+                                    data-line="{{ addr.address_line|e }}"
+                                    data-default="{{ '1' if addr.is_default else '0' }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-outline-danger delete-address-btn" data-id="{{ addr.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal Thêm/Sửa địa chỉ -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="addressForm" method="post">
+            <input type="hidden" name="address_id" id="addressId">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addressModalLabel">Thêm địa chỉ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="addressLine" class="form-label">Địa chỉ</label>
+                        <textarea class="form-control" id="addressLine" name="address_line" rows="2"
+                                  required></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="isDefault" name="is_default" value="1">
+                        <label class="form-check-label" for="isDefault">Đặt làm mặc định</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Card, form styling */
+    .profile-card, .address-card {
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .address-item {
+      transition: background .2s;
+    }
+    .address-item:hover {
+      background: #f8f9fa;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+      const modalEl = document.getElementById('addressModal');
+      const modal    = new bootstrap.Modal(modalEl);
+      const form     = document.getElementById('addressForm');
+      const idField  = document.getElementById('addressId');
+      const lineField= document.getElementById('addressLine');
+      const defField = document.getElementById('isDefault');
+      const titleEl  = document.getElementById('addressModalLabel');
+
+      // Thêm mới
+      document.getElementById('addAddressBtn')?.addEventListener('click', ()=>{
+        form.action = "{{ url_for('profile.add_address') }}";
+        titleEl.textContent = 'Thêm địa chỉ';
+        idField.value = '';
+        lineField.value = '';
+        defField.checked = false;
+      });
+
+      // Sửa
+      document.querySelectorAll('.edit-address-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          form.action = "{{ url_for('profile.edit_address') }}";
+          titleEl.textContent = 'Sửa địa chỉ';
+          idField.value = btn.dataset.id;
+          lineField.value = btn.dataset.line;
+          defField.checked = btn.dataset.default==='1';
+          modal.show();
+        });
+      });
+
+      // Xóa
+      document.querySelectorAll('.delete-address-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          if(!confirm('Bạn có chắc muốn xóa địa chỉ này?')) return;
+          fetch(`{{ url_for('profile.delete_address', id=0) }}`.replace(/0$/, btn.dataset.id), {
+            method: 'POST',
+          }).then(()=>location.reload());
+        });
+      });
+    });
+</script>
+{% endblock %}
