@@ -3,7 +3,7 @@ from OrderingFoodApp.models import Restaurant, User, UserRole, RestaurantApprova
 from sqlalchemy.exc import SQLAlchemyError
 
 
-def get_all_restaurants(page=1, page_size=10, query=None, owner_id=None):
+def get_all_restaurants(page=1, page_size=10, query=None, owner_id=None, only_approved=True):
     """
     Lấy tất cả nhà hàng với phân trang và tìm kiếm/lọc.
     Args:
@@ -15,6 +15,9 @@ def get_all_restaurants(page=1, page_size=10, query=None, owner_id=None):
         Pagination: Đối tượng phân trang chứa danh sách nhà hàng và thông tin phân trang.
     """
     restaurants_query = db.session.query(Restaurant)
+
+    if only_approved:
+        restaurants_query = restaurants_query.filter(Restaurant.approval_status == RestaurantApprovalStatus.APPROVED)
 
     if query:
         # Tìm kiếm theo tên hoặc địa chỉ nhà hàng (không phân biệt hoa thường)

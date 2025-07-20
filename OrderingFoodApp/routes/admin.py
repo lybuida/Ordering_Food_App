@@ -270,4 +270,7 @@ def reject_restaurant_route(restaurant_id):
     flash('Nhà hàng đã bị từ chối!', 'danger')
     return redirect(url_for('admin.restaurants_management'))
 
-# ... (các routes thống kê nếu có) ...
+# ==========================================================
+# ROUTES QUẢN LÝ MÃ KHUYẾN MÃI (PROMO MANAGEMENT)
+# ==========================================================
+
