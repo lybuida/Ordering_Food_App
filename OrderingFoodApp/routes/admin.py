@@ -4,6 +4,8 @@ from functools import wraps
 from flask import Blueprint, render_template, jsonify, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from flask_admin import Admin
+
+from OrderingFoodApp.dao.restaurant_dao import *
 from OrderingFoodApp.models import *
 from OrderingFoodApp.dao import user_dao, restaurant_dao, order_owner
 
@@ -64,7 +66,7 @@ def add_user():
             return render_template('admin/users/add.html', UserRole=UserRole)  # Render lại form với dữ liệu đã nhập
 
         try:
-            role = UserRole(role_str)
+            role = UserRole(role_str.lower())
         except ValueError:
             flash('Vai trò không hợp lệ.', 'danger')
             return render_template('admin/users/add.html', UserRole=UserRole)
@@ -79,6 +81,7 @@ def add_user():
             flash(f'Người dùng "{new_user.name}" đã được thêm thành công.', 'success')
             return redirect(url_for('admin.users_management'))
         else:
+            print("‼️ Không thêm được user:", name, email, role)
             flash('Có lỗi xảy ra khi thêm người dùng.', 'danger')
             return render_template('admin/users/add.html', UserRole=UserRole)
 
@@ -154,13 +157,15 @@ def restaurants_management():
     restaurants_pagination = restaurant_dao.get_all_restaurants(
         page=page, page_size=10, query=search_query, owner_id=owner_filter
     )
+    pending_restaurants = get_pending_restaurants()
 
     return render_template(
         'admin/restaurants/list.html',
         restaurants_pagination=restaurants_pagination,
         owners=owners,  # Truyền danh sách owners
         current_search=search_query,
-        current_owner_filter=owner_filter
+        current_owner_filter=owner_filter,
+        pending_restaurants = pending_restaurants
     )
 
 
@@ -248,6 +253,21 @@ def delete_restaurant(restaurant_id):
         flash('Nhà hàng đã được xóa thành công.', 'success')
     else:
         flash('Không tìm thấy nhà hàng để xóa hoặc có lỗi xảy ra.', 'danger')
+    return redirect(url_for('admin.restaurants_management'))
+
+@admin_bp.route('/restaurants/<int:restaurant_id>/approve', methods=['POST'])
+@login_required
+def approve_restaurant_route(restaurant_id):
+    approve_restaurant(restaurant_id)
+    flash('Nhà hàng đã được duyệt!', 'success')
+    return redirect(url_for('admin.restaurants_management'))
+
+@admin_bp.route('/restaurants/<int:restaurant_id>/reject', methods=['POST'])
+@login_required
+def reject_restaurant_route(restaurant_id):
+    reason = request.form.get('reason')
+    reject_restaurant(restaurant_id, reason)
+    flash('Nhà hàng đã bị từ chối!', 'danger')
     return redirect(url_for('admin.restaurants_management'))
 
 # ... (các routes thống kê nếu có) ...

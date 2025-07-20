@@ -1,5 +1,5 @@
 from OrderingFoodApp import db
-from OrderingFoodApp.models import Restaurant, User, UserRole
+from OrderingFoodApp.models import Restaurant, User, UserRole, RestaurantApprovalStatus
 from sqlalchemy.exc import SQLAlchemyError
 
 
@@ -142,6 +142,27 @@ def count_all_restaurants():
     except SQLAlchemyError as e:
         print(f"Error counting restaurants: {e}")
         return 0
+
+def get_pending_restaurants():
+    return Restaurant.query.filter(Restaurant.approval_status == RestaurantApprovalStatus.PENDING).all()
+
+def approve_restaurant(restaurant_id):
+    restaurant = Restaurant.query.get(restaurant_id)
+    if restaurant:
+        restaurant.approval_status = RestaurantApprovalStatus.APPROVED
+        db.session.commit()
+        return True
+    return False
+
+def reject_restaurant(restaurant_id, reason):
+    restaurant = Restaurant.query.get(restaurant_id)
+    if restaurant:
+        restaurant.approval_status = RestaurantApprovalStatus.REJECTED
+        restaurant.rejection_reason = reason
+        db.session.commit()
+        return True
+    return False
+
 
 # Có thể thêm các hàm DAO khác liên quan đến nhà hàng tại đây, ví dụ:
 # - get_restaurants_by_owner(owner_id)

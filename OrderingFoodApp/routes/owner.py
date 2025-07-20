@@ -94,16 +94,17 @@ def index():
             'created_at': review.created_at.strftime('%d/%m/%Y')
         })
         # Lấy danh sách nhà hàng của owner
-        restaurants = Restaurant.query.filter_by(owner_id=current_user.id).all()
+    restaurants = Restaurant.query.filter_by(owner_id=current_user.id).all()
 
-        return render_template('owner/index.html',
-                               user=owner,
-                               orders_today=orders_today,
-                               revenue_today=revenue_today,
-                               pending_orders=pending_orders,
-                               new_orders=formatted_new_orders,
-                               recent_reviews=formatted_reviews,
-                               restaurants=restaurants)
+    return render_template('owner/index.html',
+                           user=owner,
+                           orders_today=orders_today,
+                           revenue_today=revenue_today,
+                           pending_orders=pending_orders,
+                           new_orders=formatted_new_orders,
+                           recent_reviews=formatted_reviews,
+                           restaurants=restaurants)
+
 
 ##RES
 ### RESTAURANTS
@@ -389,6 +390,8 @@ def delete_branch(branch_id):
         flash(f'Có lỗi xảy ra: {str(e)}', 'danger')
 
     return redirect(url_for('owner.restaurant_details', restaurant_id=restaurant.id))
+
+
 ###MENU
 # @owner_bp.route('/menu')
 # def owner_menu():
@@ -429,16 +432,17 @@ def owner_menu():
     categories = MenuDAO.get_categories()
 
     return render_template('owner/menu.html',
-                         menu_items=menu_items,
-                         categories=categories,
-                         restaurants=restaurants,
-                         current_restaurant_id=int(restaurant_id),
-                         filter_values={
-                             'restaurant_id': restaurant_id,
-                             'category_id': category_id,
-                             'status': status_filter,
-                             'search': search
-                         })
+                           menu_items=menu_items,
+                           categories=categories,
+                           restaurants=restaurants,
+                           current_restaurant_id=int(restaurant_id),
+                           filter_values={
+                               'restaurant_id': restaurant_id,
+                               'category_id': category_id,
+                               'status': status_filter,
+                               'search': search
+                           })
+
 
 @owner_bp.route('/menu/add', methods=['GET', 'POST'])
 @login_required
@@ -504,6 +508,7 @@ def add_menu_item():
                            restaurants=restaurants,
                            categories=categories,
                            menu_item=None)
+
 
 @owner_bp.route('/menu/<int:item_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -616,6 +621,7 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
+
 ### ORDER
 @owner_bp.route('/orders', methods=['GET', 'POST'])
 @login_required
@@ -642,15 +648,15 @@ def owner_orders():
     )
 
     return render_template('owner/orders.html',
-                         orders=orders_data['orders'],
-                         pagination=orders_data,
-                         restaurants=restaurants,
-                         filter_values={
-                             'status': status,
-                             'start_date': start_date,
-                             'end_date': end_date,
-                             'branch_id': branch_id
-                         })
+                           orders=orders_data['orders'],
+                           pagination=orders_data,
+                           restaurants=restaurants,
+                           filter_values={
+                               'status': status,
+                               'start_date': start_date,
+                               'end_date': end_date,
+                               'branch_id': branch_id
+                           })
 
 
 @owner_bp.route('/orders/<int:order_id>')
@@ -661,7 +667,7 @@ def order_details(order_id):
         return redirect(url_for('owner.owner_orders'))
 
     # Kiểm tra quyền - sửa lại cách truy cập restaurant_id
-    restaurant = Restaurant.query.get(order['restaurant_id']) # Truy cập như dictionary
+    restaurant = Restaurant.query.get(order['restaurant_id'])  # Truy cập như dictionary
     if not restaurant or restaurant.owner_id != current_user.id:
         return redirect(url_for('owner.owner_orders'))
 
@@ -689,8 +695,8 @@ def update_order_status(order_id):
     else:
         return jsonify({'success': False, 'message': 'Không thể chuyển sang trạng thái này'})
 
+
 ##33##
 @owner_bp.route('/statistics')
 def owner_statistics():
     return render_template('owner/statistics.html')
-

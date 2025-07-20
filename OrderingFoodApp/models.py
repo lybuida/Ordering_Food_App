@@ -121,6 +121,12 @@ class User(db.Model):
 
 
 # ========== RESTAURANT ==========
+
+class RestaurantApprovalStatus(enum):
+    PENDING = "pending"      # Chờ duyệt
+    APPROVED = "approved"    # Đã duyệt
+    REJECTED = "rejected"    # Bị từ chối
+
 class Restaurant(db.Model):
     __tablename__ = 'restaurants'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -135,6 +141,8 @@ class Restaurant(db.Model):
     longitude = Column(Float)
     image_url = Column(String(255))  # Thêm dòng này
     created_at = Column(DateTime, default=datetime.utcnow)
+    approval_status = Column(Enum(RestaurantApprovalStatus), nullable=False, default=RestaurantApprovalStatus.PENDING)
+    rejection_reason = Column(Text, nullable=True)  # Lưu lý do nếu bị từ chối
 
 
     menu_items = relationship('MenuItem', backref='restaurant', lazy=True)
