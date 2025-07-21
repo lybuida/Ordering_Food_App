@@ -43,7 +43,7 @@ class DiscountType(enum):
 class NotificationType(enum):
     ORDER_STATUS = "order_status"
     REVIEW_RESPONSE = "review_response"
-    PROMO = "promo"
+    PROMO = "promos"
     OTHER = "other"
 
 class Gender(enum):
@@ -261,6 +261,8 @@ class PromoCode(db.Model):
     image_url = Column(String(255))
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    restaurant_id = Column(Integer, ForeignKey('restaurants.id'), nullable=True)  # null = mã dùng chung toàn hệ thống
+    restaurant = relationship('Restaurant', backref='promo_codes')
     orders = relationship('Order', backref='promo_code', lazy=True)
 
 

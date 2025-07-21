@@ -1,0 +1,54 @@
+{% extends 'layout/base.html' %}
+{% block title %}Thêm Mã Khuyến Mãi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Thêm Mã Khuyến Mãi</h2>
+    <form method="POST">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Mã khuyến mãi *</label>
+                <input type="text" class="form-control" name="code" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Loại giảm giá *</label>
+                <select class="form-select" name="discount_type" required>
+                    <option value="percent">Phần trăm (%)</option>
+                    <option value="fixed">Số tiền cố định (₫)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Giá trị giảm *</label>
+            <input type="number" class="form-control" name="discount_value" step="0.01" required>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Ngày bắt đầu *</label>
+                <input type="datetime-local" class="form-control" name="start_date" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Ngày kết thúc *</label>
+                <input type="datetime-local" class="form-control" name="end_date" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Số lần sử dụng tối đa</label>
+            <input type="number" class="form-control" name="usage_limit" placeholder="Không giới hạn nếu để trống">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Mô tả</label>
+            <textarea class="form-control" name="description" rows="3"></textarea>
+        </div>
+
+        <div class="mb-3 text-end">
+            <a href="{{ url_for('admin.promo_management') }}" class="btn btn-secondary">Hủy</a>
+            <button type="submit" class="btn btn-primary">Tạo mã</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

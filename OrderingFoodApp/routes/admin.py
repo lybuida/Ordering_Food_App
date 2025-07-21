@@ -1,4 +1,4 @@
-#admin.py
+# admin.py
 from functools import wraps
 
 from flask import Blueprint, render_template, jsonify, redirect, url_for, flash, request
@@ -11,25 +11,29 @@ from OrderingFoodApp.dao import user_dao, restaurant_dao, order_owner
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
+
 @admin_bp.route('/')
 @login_required
 def index():
     admin = User.query.filter_by(id=current_user.id).first()
     return render_template('admin/index.html', user=admin)
 
+
 def admin_required(f):
     """
     Decorator tùy chỉnh để yêu cầu quyền ADMIN.
     Đảm bảo người dùng đã đăng nhập và có vai trò ADMIN.
     """
+
     @wraps(f)
-    @login_required # Đảm bảo người dùng đã đăng nhập trước
+    @login_required  # Đảm bảo người dùng đã đăng nhập trước
     def decorated_function(*args, **kwargs):
-        if not current_user.is_admin: # Kiểm tra thuộc tính is_admin của User model
+        if not current_user.is_admin:  # Kiểm tra thuộc tính is_admin của User model
             flash('Bạn không có quyền truy cập vào trang này.', 'danger')
             # Chuyển hướng về trang chủ hoặc trang lỗi
-            return redirect(url_for('home')) # Hoặc url_for('auth_bp.login') nếu muốn đăng nhập lại
+            return redirect(url_for('home'))  # Hoặc url_for('auth_bp.login') nếu muốn đăng nhập lại
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -165,7 +169,7 @@ def restaurants_management():
         owners=owners,  # Truyền danh sách owners
         current_search=search_query,
         current_owner_filter=owner_filter,
-        pending_restaurants = pending_restaurants
+        pending_restaurants=pending_restaurants
     )
 
 
@@ -255,12 +259,14 @@ def delete_restaurant(restaurant_id):
         flash('Không tìm thấy nhà hàng để xóa hoặc có lỗi xảy ra.', 'danger')
     return redirect(url_for('admin.restaurants_management'))
 
+
 @admin_bp.route('/restaurants/<int:restaurant_id>/approve', methods=['POST'])
 @login_required
 def approve_restaurant_route(restaurant_id):
     approve_restaurant(restaurant_id)
     flash('Nhà hàng đã được duyệt!', 'success')
     return redirect(url_for('admin.restaurants_management'))
+
 
 @admin_bp.route('/restaurants/<int:restaurant_id>/reject', methods=['POST'])
 @login_required
@@ -270,7 +276,130 @@ def reject_restaurant_route(restaurant_id):
     flash('Nhà hàng đã bị từ chối!', 'danger')
     return redirect(url_for('admin.restaurants_management'))
 
+
 # ==========================================================
 # ROUTES QUẢN LÝ MÃ KHUYẾN MÃI (PROMO MANAGEMENT)
 # ==========================================================
 
+# @admin_bp.route('/promo-codes')
+# def promo_codes():
+#     promos = get_all_promo_codes()
+#
+#     class DummyPagination:
+#         def __init__(self, items):
+#             self.items = items
+#             self.iter_pages = lambda: [1]
+#             self.page = 1
+#
+#     promos_pagination = DummyPagination(promos)
+#
+#     return render_template(
+#         'admin/promos/list.html',
+#         promos_pagination=promos_pagination,
+#         current_search=""
+#     )
+
+
+@admin_bp.route('/promos')
+@login_required
+def promo_management():
+    if not current_user.is_admin:
+        abort(403)
+
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '')
+
+    promos_query = PromoCode.query
+
+    if search:
+        promos_query = promos_query.filter(PromoCode.code.ilike(f"%{search}%"))
+
+    promos_query = promos_query.order_by(PromoCode.created_at.desc())
+    promos_pagination = promos_query.paginate(page=page, per_page=10, error_out=False)
+
+    return render_template(
+        'admin/promos/list.html',
+        promos_pagination=promos_pagination,
+        current_search=search
+    )
+
+
+@admin_bp.route('/promos/add', methods=['GET', 'POST'])
+@login_required
+def add_promo():
+    if not current_user.is_admin:
+        abort(403)
+
+    if request.method == 'POST':
+        code = request.form.get('code')
+        description = request.form.get('description')
+        discount_type = request.form.get('discount_type')
+        discount_value = request.form.get('discount_value')
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date')
+        usage_limit = request.form.get('usage_limit')
+
+        if discount_type == 'PERCENT' and float(discount_value) > 50:
+            flash('Giảm giá phần trăm không được vượt quá 50%.', 'danger')
+            return redirect(url_for('admin.add_promo'))
+
+        if PromoCode.query.filter_by(code=code).first():
+            flash('Mã khuyến mãi đã tồn tại.', 'danger')
+            return redirect(url_for('admin.add_promo'))
+
+        try:
+            new_promo = PromoCode(
+                code=code,
+                description=description,
+                discount_type=discount_type,
+                discount_value=discount_value,
+                start_date=datetime.strptime(start_date, '%Y-%m-%dT%H:%M'),
+                end_date=datetime.strptime(end_date, '%Y-%m-%dT%H:%M'),
+                usage_limit=int(usage_limit)
+            )
+            db.session.add(new_promo)
+            db.session.commit()
+            flash('Thêm mã khuyến mãi thành công.', 'success')
+            return redirect(url_for('admin.promo_management'))
+        except Exception as e:
+            flash(f'Lỗi khi thêm mã: {e}', 'danger')
+
+    return render_template('admin/promos/add.html')
+
+
+@admin_bp.route('/promos/<int:promo_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_promo(promo_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    promos = PromoCode.query.get_or_404(promo_id)
+
+    if request.method == 'POST':
+        promos.code = request.form.get('code')
+        promos.description = request.form.get('description')
+        promos.discount_type = request.form.get('discount_type')
+        promos.discount_value = request.form.get('discount_value')
+        promos.start_date = datetime.strptime(request.form.get('start_date'), '%Y-%m-%dT%H:%M')
+        promos.end_date = datetime.strptime(request.form.get('end_date'), '%Y-%m-%dT%H:%M')
+        promos.usage_limit = request.form.get('usage_limit')
+
+        db.session.commit()
+        flash('Cập nhật thành công.', 'success')
+        return redirect(url_for('admin.promo_management'))
+
+    return render_template('admin/promos/edit.html', promo=promos)
+
+
+
+@admin_bp.route('/promos/<int:promo_id>/delete', methods=['POST'])
+@login_required
+def delete_promo(promo_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    promo = PromoCode.query.get_or_404(promo_id)
+    db.session.delete(promo)
+    db.session.commit()
+    flash('Xóa thành công.', 'success')
+    return redirect(url_for('admin.promo_management'))

@@ -7,6 +7,7 @@ from datetime import datetime, timedelta  # Thêm import ở đầu file nếu c
 
 fake = Faker('vi_VN')
 
+
 def seed_data():
     # ========== ADMIN ==========
     admin = User(
@@ -47,11 +48,15 @@ def seed_data():
 
     # ========== DANH MỤC MÓN ĂN ==========
     category_names = [
-    {"name": "Khai Vị", "image_url": "https://img.lovepik.com/png/20231111/appetizer-clipart-platter-of-food-is-arranged-on-top-cartoon_558150_wh1200.png"},
-    {"name": "Món Chính", "image_url": "https://png.pngtree.com/png-vector/20240528/ourlarge/pngtree-a-chinese-style-cuisine-looking-beautiful-png-image_12504550.png"},
-    {"name": "Tráng Miệng", "image_url": "https://img.lovepik.com/png/20231107/Piece-of-cake-cartoon-pastry-illustration-strawberry-snack_520860_wh860.png"},
-    {"name": "Đồ Uống", "image_url": "https://img.lovepik.com/free-png/20210927/lovepik-drink-png-image_401579146_wh1200.png"}
-]
+        {"name": "Khai Vị",
+         "image_url": "https://img.lovepik.com/png/20231111/appetizer-clipart-platter-of-food-is-arranged-on-top-cartoon_558150_wh1200.png"},
+        {"name": "Món Chính",
+         "image_url": "https://png.pngtree.com/png-vector/20240528/ourlarge/pngtree-a-chinese-style-cuisine-looking-beautiful-png-image_12504550.png"},
+        {"name": "Tráng Miệng",
+         "image_url": "https://img.lovepik.com/png/20231107/Piece-of-cake-cartoon-pastry-illustration-strawberry-snack_520860_wh860.png"},
+        {"name": "Đồ Uống",
+         "image_url": "https://img.lovepik.com/free-png/20210927/lovepik-drink-png-image_401579146_wh1200.png"}
+    ]
     categories = []
     for data in category_names:
         cat = MenuCategory(name=data["name"], image_url=data["image_url"])
@@ -82,7 +87,8 @@ def seed_data():
                 phone=fake.phone_number(),
                 latitude=random.uniform(10.75, 10.80),
                 longitude=random.uniform(106.65, 106.70),
-                image_url=f"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNRas_-SFKO__MFuzdDpDJX1N-lQ4uhw2ODw&s"  # Thêm dòng này
+                image_url=f"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNRas_-SFKO__MFuzdDpDJX1N-lQ4uhw2ODw&s"
+                # Thêm dòng này
             )
             db.session.add(restaurant)
             db.session.flush()
@@ -191,10 +197,9 @@ def seed_data():
             )
             db.session.add(notification)
 
-
     db.session.commit()
 
-# ─── BỔ SUNG PROFILE & ADDRESS CHO TẤT CẢ USER ───
+    # ─── BỔ SUNG PROFILE & ADDRESS CHO TẤT CẢ USER ───
     # gom tất cả users vừa tạo
     all_users = [admin] + owners + customers
 
@@ -220,7 +225,7 @@ def seed_data():
             discount_type=random.choice([DiscountType.PERCENT, DiscountType.FIXED]),
             discount_value=random.randint(5, 50) if i % 2 == 0 else random.randint(10000, 100000),
             start_date=datetime(2025, 7, random.randint(1, 10)),
-end_date=datetime(2025, 8, random.randint(20, 31)),
+            end_date=datetime(2025, 8, random.randint(20, 31)),
             usage_limit=random.choice([10, 20, 50, 100]),
             image_url=promo_image_urls[i % len(promo_image_urls)]
         )
@@ -231,30 +236,31 @@ end_date=datetime(2025, 8, random.randint(20, 31)),
     for user in all_users:
         # 1) Gán ngày sinh, giới tính, số điện thoại
         user.date_of_birth = fake.date_of_birth(minimum_age=18, maximum_age=60)
-        user.gender        = random.choice(list(Gender))
-        user.phone         = fake.phone_number()
+        user.gender = random.choice(list(Gender))
+        user.phone = fake.phone_number()
         db.session.add(user)
 
         # 2) Tạo địa chỉ mặc định
         addr_def = Address(
-            user_id      = user.id,
-            address_line = fake.address(),
-            is_default   = True
+            user_id=user.id,
+            address_line=fake.address(),
+            is_default=True
         )
         db.session.add(addr_def)
 
         # 3) Tạo thêm 1–3 địa chỉ phụ
         for _ in range(random.randint(1, 3)):
             addr = Address(
-                user_id      = user.id,
-                address_line = fake.address(),
-                is_default   = False
+                user_id=user.id,
+                address_line=fake.address(),
+                is_default=False
             )
             db.session.add(addr)
 
     db.session.commit()
 
     print("✅ Seed thành công")
+
 
 if __name__ == '__main__':
     app = init_app()

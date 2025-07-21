@@ -1,0 +1,64 @@
+{% extends 'layout/base.html' %}
+{% block title %}Quản lý Mã Khuyến Mãi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Danh sách Mã Khuyến Mãi</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ url_for('admin.add_promo') }}" class="btn btn-primary">Tạo Mã Khuyến Mãi</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Loại</th>
+                    <th>Giá trị</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Ngày kết thúc</th>
+                    <th>Số lượt dùng</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for promo in promos_pagination.items %}
+                <tr>
+                    <td><strong>{{ promo.code }}</strong></td>
+                    <td>{{ promo.discount_type.value }}</td>
+                    <td>
+                        {{ promo.discount_value }}
+                        {% if promo.discount_type.name == 'PERCENT' %}%{% else %}₫{% endif %}
+                    </td>
+                    <td>{{ promo.start_date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ promo.end_date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ promo.usage_limit or '∞' }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.edit_promo', promo_id=promo.id) }}" class="btn btn-warning btn-sm">Sửa</a>
+                        <form method="POST"
+                              action="{{ url_for('admin.delete_promo', promo_id=promo.id) }}"
+                              style="display:inline;"
+                              onsubmit="return confirm('Bạn có chắc muốn xóa mã này không?');">
+                            <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center">Chưa có mã nào.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
