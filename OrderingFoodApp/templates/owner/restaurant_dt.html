@@ -1,0 +1,133 @@
+{% extends "layout/base.html" %}
+{% block title %}Chi tiết Nhà Hàng - {{ restaurant.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="fas fa-store me-2"></i>{{ restaurant.name }}</h3>
+        <div>
+            <a href="{{ url_for('owner.edit_restaurant', restaurant_id=restaurant.id) }}"
+               class="btn btn-outline-secondary me-2">
+                <i class="fas fa-edit me-1"></i>Chỉnh sửa
+            </a>
+            <form action="{{ url_for('owner.delete_restaurant', restaurant_id=restaurant.id) }}" method="post"
+                  class="d-inline me-2">
+                <button type="submit" class="btn btn-outline-danger"
+                        onclick="return confirm('Bạn có chắc chắn muốn xóa nhà hàng này?')">
+                    <i class="fas fa-trash me-1"></i>Xóa
+                </button>
+            </form>
+            <a href="{{ url_for('owner.owner_restaurants') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i>Quay lại
+            </a>
+        </div>
+    </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-info-circle me-2"></i>Thông tin cơ bản
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Tên nhà hàng:</strong> {{ restaurant.name }}</p>
+                            <p><strong>Mô tả:</strong> {{ restaurant.description }}</p>
+                            <p><strong>Địa chỉ:</strong> {{ restaurant.address }}</p>
+                            <p><strong>Số điện thoại:</strong> {{ restaurant.phone }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Giờ mở cửa:</strong> {{ restaurant.opening_time }} - {{ restaurant.closing_time
+                                }}</p>
+                            <p><strong>Trạng thái:</strong>
+                                {% if restaurant.approval_status == 'pending' %}
+                                <span class="badge bg-warning">{{ restaurant.approval_status_display }}</span>
+                                {% elif restaurant.approval_status == 'approved' %}
+                                <span class="badge bg-success">{{ restaurant.approval_status_display }}</span>
+                                {% elif restaurant.approval_status == 'rejected' %}
+                                <span class="badge bg-danger">{{ restaurant.approval_status_display }}</span>
+                                {% endif %}
+                            </p>
+                            {% if restaurant.approval_status == 'rejected' and restaurant.rejection_reason %}
+                            <p><strong>Lý do từ chối:</strong> <span class="text-danger">{{ restaurant.rejection_reason }}</span>
+                            </p>
+                            {% endif %}
+                            <p><strong>Ngày tạo:</strong> {{ restaurant.created_at }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-image me-2"></i>Hình ảnh
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ restaurant.image_url or '/static/images/restaurant-placeholder.jpg' }}"
+                         class="img-fluid rounded" alt="{{ restaurant.name }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--    <div class="card shadow-sm mb-4">-->
+    <!--        <div class="card-header bg-info text-white">-->
+    <!--            <i class="fas fa-map-marked-alt me-2"></i>Vị trí trên bản đồ-->
+    <!--        </div>-->
+    <!--        <div class="card-body">-->
+    <!--            {% if restaurant.latitude and restaurant.longitude %}-->
+    <!--            <div id="map" style="height: 300px; width: 100%;"></div>-->
+    <!--            {% else %}-->
+    <!--            <div class="alert alert-warning">Chưa có thông tin vị trí</div>-->
+    <!--            {% endif %}-->
+    <!--        </div>-->
+    <!--    </div>-->
+
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-utensils me-2"></i>Thực đơn</span>
+            {% if restaurant.approval_status == 'approved' %}
+            <a href="{{ url_for('owner.owner_menu', restaurant_id=restaurant.id) }}" class="btn btn-sm btn-light">
+                <i class="fas fa-arrow-right me-1"></i>Quản lý thực đơn
+            </a>
+            {% else %}
+            <span class="badge bg-secondary">Không thể quản lý thực đơn khi nhà hàng chưa được duyệt</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if restaurant.approval_status == 'approved' %}
+            <p>Nhà hàng đã được duyệt, bạn có thể quản lý thực đơn.</p>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Nhà hàng chưa được duyệt. Bạn không thể quản lý thực đơn hoặc nhận đơn hàng cho đến khi nhà hàng được
+                duyệt.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!--{% if restaurant.latitude and restaurant.longitude %}-->
+<!--<script>-->
+<!--    function initMap() {-->
+<!--        const location = { lat: {{ restaurant.latitude }}, lng: {{ restaurant.longitude }} };-->
+<!--        const map = new google.maps.Map(document.getElementById("map"), {-->
+<!--            zoom: 15,-->
+<!--            center: location,-->
+<!--        });-->
+<!--        new google.maps.Marker({-->
+<!--            position: location,-->
+<!--            map: map,-->
+<!--            title: "{{ restaurant.name }}"-->
+<!--        });-->
+<!--    }-->
+<!--</script>-->
+<!--<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>-->
+<!--{% endif %}-->
+{% endblock %}

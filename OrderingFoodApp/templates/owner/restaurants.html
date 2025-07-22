@@ -1,5 +1,6 @@
 {% extends "layout/base.html" %}
 {% block title %}Quản lý Nhà Hàng{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,151 +11,95 @@
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
     {% endwith %}
 
     {% if restaurants %}
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">
-            <i class="fas fa-list me-2"></i>Danh sách nhà hàng của bạn
-        </div>
-        <div class="card-body">
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Tên nhà hàng</th>
-                            <th>Địa chỉ</th>
-                            <th>Giờ mở cửa</th>
-                            <th>Trạng thái</th>
-                            <th>Hành động</th>
-                        </tr>
+                <!-- Tìm phần bảng hiển thị nhà hàng và sửa cột Hành động -->
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Ảnh</th>
+                        <th>Tên nhà hàng</th>
+                        <th>Địa chỉ</th>
+                        <th>Giờ mở cửa</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th>Hành động</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {% for restaurant in restaurants %}
-                        <tr>
-                            <td>
-                                <a href="{{ url_for('owner.restaurant_details', restaurant_id=restaurant.id) }}">
-                                    {{ restaurant.name }}
+                    {% for restaurant in restaurants %}
+                    <tr>
+                        <td>
+                            <img src="{{ restaurant.image_url or '/static/images/restaurant-placeholder.jpg' }}"
+                                 class="img-thumbnail" width="60" height="60" alt="{{ restaurant.name }}">
+                        </td>
+                        <td>
+                            <strong>{{ restaurant.name }}</strong>
+                            <p class="mb-0 text-muted small">{{ restaurant.description|truncate(50) }}</p>
+                        </td>
+                        <td>{{ restaurant.address|truncate(30) }}</td>
+                        <td>{{ restaurant.opening_time }} - {{ restaurant.closing_time }}</td>
+                        <td>
+                            {% if restaurant.approval_status == 'pending' %}
+                            <span class="badge bg-warning">{{ restaurant.approval_status_display }}</span>
+                            {% elif restaurant.approval_status == 'approved' %}
+                            <span class="badge bg-success">{{ restaurant.approval_status_display }}</span>
+                            {% elif restaurant.approval_status == 'rejected' %}
+                            <span class="badge bg-danger">{{ restaurant.approval_status_display }}</span>
+                            {% if restaurant.rejection_reason %}
+                            <p class="small text-danger mt-1 mb-0">{{ restaurant.rejection_reason }}</p>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>{{ restaurant.created_at }}</td>
+                        <td>
+                            <div class="d-flex">
+                                <a href="{{ url_for('owner.restaurant_details', restaurant_id=restaurant.id) }}"
+                                   class="btn btn-sm btn-outline-primary me-1" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
                                 </a>
-                            </td>
-                            <td>{{ restaurant.address }}</td>
-                            <td>{{ restaurant.opening_time.strftime('%H:%M') }} - {{ restaurant.closing_time.strftime('%H:%M') }}</td>
-                            <td>
-                                <span class="badge bg-success">Hoạt động</span>
-                            </td>
-                            <td>
-                                <a href="{{ url_for('owner.edit_restaurant', restaurant_id=restaurant.id) }}" 
-                                   class="btn btn-sm btn-outline-primary me-1">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ url_for('owner.delete_restaurant', restaurant_id=restaurant.id) }}" 
-                                      method="post" class="d-inline">
+<!--                                <a href="{{ url_for('owner.edit_restaurant', restaurant_id=restaurant.id) }}"-->
+<!--                                   class="btn btn-sm btn-outline-secondary me-1" title="Chỉnh sửa">-->
+<!--                                    <i class="fas fa-edit"></i>-->
+<!--                                </a>-->
+                                <form action="{{ url_for('owner.delete_restaurant', restaurant_id=restaurant.id) }}"
+                                      method="post">
                                     <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            title="Xóa"
                                             onclick="return confirm('Bạn có chắc chắn muốn xóa nhà hàng này?')">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    {% endif %}
-
-    {% if current_restaurant %}
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-info text-white">
-            <i class="fas fa-store me-2"></i>Thông tin nhà hàng: {{ current_restaurant.name }}
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    {% if current_restaurant.image_url %}
-                    <img src="{{ current_restaurant.image_url }}" class="img-fluid rounded mb-3" alt="{{ current_restaurant.name }}">
-                    {% else %}
-                    <img src="/static/images/restaurant-placeholder.jpg" class="img-fluid rounded mb-3" alt="Default image">
-                    {% endif %}
-                </div>
-                <div class="col-md-8">
-                    <h4>{{ current_restaurant.name }}</h4>
-                    <p>{{ current_restaurant.description }}</p>
-                    <p><i class="fas fa-map-marker-alt me-2"></i> {{ current_restaurant.address }}</p>
-                    <p><i class="fas fa-phone me-2"></i> {{ current_restaurant.phone }}</p>
-                    <p><i class="fas fa-clock me-2"></i> Giờ mở cửa: {{ current_restaurant.opening_time.strftime('%H:%M') }} - {{ current_restaurant.closing_time.strftime('%H:%M') }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="card-footer">
-            <a href="{{ url_for('owner.add_branch', restaurant_id=current_restaurant.id) }}" class="btn btn-success">
-                <i class="fas fa-plus-circle me-1"></i>Thêm chi nhánh
-            </a>
-        </div>
-    </div>
-
+    {% else %}
     <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <i class="fas fa-code-branch me-2"></i>Danh sách chi nhánh
-        </div>
-        <div class="card-body">
-            {% if branches %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Tên chi nhánh</th>
-                            <th>Địa chỉ</th>
-                            <th>Giờ mở cửa</th>
-                            <th>Trạng thái</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for branch in branches %}
-                        <tr>
-                            <td>{{ branch.name }}</td>
-                            <td>{{ branch.address }}</td>
-                            <td>{{ branch.opening_time.strftime('%H:%M') }} - {{ branch.closing_time.strftime('%H:%M') }}</td>
-                            <td>
-                                {% if branch.status == 'active' %}
-                                <span class="badge bg-success">Hoạt động</span>
-                                {% else %}
-                                <span class="badge bg-secondary">Tạm đóng</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{{ url_for('owner.edit_branch', branch_id=branch.id) }}" 
-                                   class="btn btn-sm btn-outline-primary me-1">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ url_for('owner.delete_branch', branch_id=branch.id) }}" 
-                                      method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('Bạn có chắc chắn muốn xóa chi nhánh này?')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="alert alert-info">
-                Nhà hàng này chưa có chi nhánh nào.
-            </div>
-            {% endif %}
+        <div class="card-body text-center py-5">
+            <i class="fas fa-store fa-3x text-muted mb-3"></i>
+            <h5>Bạn chưa có nhà hàng nào</h5>
+            <p class="text-muted">Bắt đầu bằng cách thêm nhà hàng mới của bạn</p>
+            <a href="{{ url_for('owner.add_restaurant') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i>Thêm nhà hàng
+            </a>
         </div>
     </div>
     {% endif %}

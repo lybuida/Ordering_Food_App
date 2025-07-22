@@ -1,5 +1,5 @@
 # OrderingFoodApp/dao/menu_dao.py
-from OrderingFoodApp.models import db, MenuItem, MenuCategory, Restaurant
+from OrderingFoodApp.models import db, MenuItem, MenuCategory, Restaurant, RestaurantApprovalStatus
 from sqlalchemy import or_
 from datetime import datetime
 
@@ -7,6 +7,10 @@ from datetime import datetime
 class MenuDAO:
     @staticmethod
     def get_menu_items(restaurant_id, category_id=None, status_filter=None, search=None, page=1, per_page=10):
+        # Kiểm tra nhà hàng có được duyệt không
+        restaurant = Restaurant.query.get(restaurant_id)
+        if not restaurant or restaurant.approval_status != RestaurantApprovalStatus.APPROVED:
+            return None
         query = MenuItem.query.filter_by(restaurant_id=restaurant_id)
 
         if category_id and category_id != 'all':
@@ -36,6 +40,10 @@ class MenuDAO:
 
     @staticmethod
     def create_menu_item(restaurant_id, category_id, name, description, price, image_url=None, is_active=True):
+        # Kiểm tra nhà hàng có được duyệt không
+        restaurant = Restaurant.query.get(restaurant_id)
+        if not restaurant or restaurant.approval_status != RestaurantApprovalStatus.APPROVED:
+            return None
         menu_item = MenuItem(
             restaurant_id=restaurant_id,
             category_id=category_id,

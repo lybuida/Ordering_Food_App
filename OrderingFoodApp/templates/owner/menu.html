@@ -41,7 +41,7 @@
                     <div class="col-md-3 mb-3">
                         <label class="form-label">Danh mục</label>
                         <select name="category_id" class="form-select">
-                            <option value="all" {% if filter_values.category_id == 'all' %}selected{% endif %}>Tất cả</option>
+                            <option value="all" {% if filter_values.category_id =='all' %}selected{% endif %}>Tất cả</option>
                             {% for category in categories %}
                                 <option value="{{ category.id }}"
                                     {% if filter_values.category_id|string == category.id|string %}selected{% endif %}>
@@ -53,9 +53,9 @@
                     <div class="col-md-3 mb-3">
                         <label class="form-label">Trạng thái</label>
                         <select name="status" class="form-select">
-                            <option value="all" {% if filter_values.status == 'all' %}selected{% endif %}>Tất cả</option>
-                            <option value="active" {% if filter_values.status == 'active' %}selected{% endif %}>Đang bán</option>
-                            <option value="inactive" {% if filter_values.status == 'inactive' %}selected{% endif %}>Tạm ngừng</option>
+                            <option value="all" {% if filter_values.status =='all' %}selected{% endif %}>Tất cả</option>
+                            <option value="active" {% if filter_values.status =='active' %}selected{% endif %}>Đang bán</option>
+                            <option value="inactive" {% if filter_values.status =='inactive' %}selected{% endif %}>Tạm ngừng</option>
                         </select>
                     </div>
                     <div class="col-md-3 mb-3">

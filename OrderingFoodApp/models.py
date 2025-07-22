@@ -18,6 +18,7 @@ class OrderStatus(enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
     PREPARING = "preparing"
+    DELIVERED = "delivered"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 

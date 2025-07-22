@@ -1,5 +1,6 @@
 # order_owner.py
-from OrderingFoodApp.models import Order, OrderItem, User, Restaurant, db, Notification, NotificationType, OrderStatus
+from OrderingFoodApp.models import Order, OrderItem, User, Restaurant, db, Notification, NotificationType, OrderStatus, \
+    RestaurantApprovalStatus
 from sqlalchemy import func, and_, or_
 from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
@@ -8,7 +9,10 @@ from sqlalchemy.exc import SQLAlchemyError
 class OrderDAO:
     @staticmethod
     def get_orders_by_owner(owner_id, status=None, start_date=None, end_date=None, branch_id=None, page=1, per_page=10):
-        query = Order.query.join(Restaurant).filter(Restaurant.owner_id == owner_id)
+        query = Order.query.join(Restaurant).filter(
+            Restaurant.owner_id == owner_id,
+            Restaurant.approval_status == RestaurantApprovalStatus.APPROVED
+        )
 
         # Lọc theo trạng thái
         if status:
