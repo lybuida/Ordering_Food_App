@@ -28,7 +28,17 @@
                 <li class="nav-item"><a class="nav-link" href="/admin/users">Quản lý người dùng</a></li>
                 <li class="nav-item"><a class="nav-link" href="/admin/restaurants">Quản lý nhà hàng</a></li>
                 <li class="nav-item"><a class="nav-link" href="/admin/promos">Quản lý mã giảm giá</a></li>
-                <li class="nav-item"><a class="nav-link" href="/admin/statistics">Thống kê</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Báo cáo thống kê
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="reportsDropdown">
+                        <li><a class="dropdown-item" href="{{ url_for('admin.user_report') }}">Người dùng</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin.restaurant_report') }}">Nhà hàng</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('admin.promo_report') }}">Mã khuyến mãi</a></li>
+                    </ul>
+                </li>
                 {% elif current_user.role == UserRole.OWNER %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('owner.owner_restaurants') }}">Nhà hàng của
                     tôi</a></li>

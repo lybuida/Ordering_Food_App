@@ -1,0 +1,118 @@
+{% extends 'layout/base.html' %}
+{% block title %}Báo cáo mã khuyến mãi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Báo cáo mã khuyến mãi</h2>
+
+    <!-- Dropdown chọn loại báo cáo -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <label class="form-label">Chọn loại báo cáo</label>
+            <select name="type" class="form-select" onchange="this.form.submit()">
+                <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>Mới theo ngày</option>
+                <option value="type" {% if report_type == 'type' %}selected{% endif %}>Phân loại theo loại giảm</option>
+            </select>
+        </div>
+
+        {% if report_type == 'daily' %}
+        <div class="col-md-3">
+            <label class="form-label">Từ ngày</label>
+            <input type="date" class="form-control" name="start" value="{{ start or '' }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Đến ngày</label>
+            <input type="date" class="form-control" name="end" value="{{ end or '' }}">
+        </div>
+        {% endif %}
+
+        <div class="col-md-2 align-self-end">
+            <button class="btn btn-primary w-100" type="submit">Lọc</button>
+        </div>
+        <div class="col-md-2 align-self-end">
+            <a href="{{ url_for('admin.export_promo_report', export_format='excel', type=report_type, start=start, end=end) }}"
+               class="btn btn-success w-100">Xuất Excel</a>
+        </div>
+        <div class="col-md-2 align-self-end">
+            <a href="{{ url_for('admin.export_promo_report', export_format='pdf', type=report_type, start=start, end=end) }}"
+               class="btn btn-danger w-100">Xuất PDF</a>
+        </div>
+    </form>
+
+    <!-- Biểu đồ -->
+    <div class="row">
+        <div class="col-md-{{ report_type == 'daily' and 12 or 6 }}">
+            <canvas id="promoChart" height="120"></canvas>
+        </div>
+    </div>
+
+    <!-- Bảng dữ liệu -->
+    <div class="mt-4">
+        <h5>Chi tiết</h5>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    {% if report_type == 'daily' %}
+                        <th>Ngày</th>
+                        <th>Số lượng mã mới</th>
+                    {% else %}
+                        <th>Loại giảm giá</th>
+                        <th>Số lượng mã</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in promo_stats %}
+                    <tr>
+                        <td>
+                            {% if report_type == 'daily' %}
+                                {{ row[0].strftime('%Y-%m-%d') }}
+                            {% else %}
+                                {{ row[0].value }}
+                            {% endif %}
+                        </td>
+                        <td>{{ row[1] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p><strong>Tổng cộng:</strong> {{ total_promos }}</p>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('promoChart').getContext('2d');
+    const promoChart = new Chart(ctx, {
+        type: '{{ "bar" if report_type == "daily" else "pie" }}',
+        data: {
+            labels: {{ labels | tojson | safe }},
+            datasets: [{
+                label: '{{ "Mã mới theo ngày" if report_type == "daily" else "Phân loại mã" }}',
+                data: {{ values | tojson | safe }},
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: '{{ "Thống kê mã khuyến mãi theo ngày" if report_type == "daily" else "Thống kê mã theo loại" }}'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

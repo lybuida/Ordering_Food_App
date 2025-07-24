@@ -1,0 +1,154 @@
+{% extends 'layout/base.html' %}
+{% block title %}Báo cáo người dùng{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Báo cáo người dùng</h2>
+
+    <!-- Dropdown chọn loại báo cáo -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="reportType" class="form-label">Chọn loại báo cáo</label>
+            <select class="form-select" id="reportType" onchange="changeReport(this.value)">
+                <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>Người dùng mới theo ngày</option>
+                <option value="role" {% if report_type == 'role' %}selected{% endif %}>Tổng số người dùng theo vai trò</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Bộ lọc thời gian -->
+    <form method="get" class="row g-3 mb-4">
+        <input type="hidden" name="type" value="{{ report_type }}">
+        <div class="col-md-4">
+            <label class="form-label">Từ ngày</label>
+            <input type="date" class="form-control" name="start" value="{{ start }}">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Đến ngày</label>
+            <input type="date" class="form-control" name="end" value="{{ end }}">
+        </div>
+        <div class="col-md-4 align-self-end">
+            <button class="btn btn-primary" type="submit">Lọc</button>
+            <a href="{{ url_for('admin.export_user_report', export_format='excel', type=report_type) }}" class="btn btn-success">Xuất Excel</a>
+            <a href="{{ url_for('admin.export_user_report', export_format='pdf', type=report_type) }}" class="btn btn-danger">Xuất PDF</a>
+        </div>
+    </form>
+
+    <!-- Biểu đồ -->
+    {% if report_type == 'daily' %}
+        <h5>Tổng số người dùng mới: {{ total_users }}</h5>
+        <canvas id="userChart" height="100"></canvas>
+
+        <!-- Bảng chi tiết người dùng mới theo ngày -->
+        <div class="mt-4">
+            <h6>Chi tiết theo ngày</h6>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Số người dùng mới</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in user_stats %}
+                        <tr>
+                            <td>{{ row[0].strftime('%Y-%m-%d') }}</td>
+                            <td>{{ row[1] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% elif report_type == 'role' %}
+        <h5>Tổng số người dùng: {{ total_users }}</h5>
+        <div class="d-flex justify-content-center">
+            <canvas id="roleChart" width="900" height="900" style="max-width: 900px;"></canvas>
+        </div>
+
+    <!-- Bảng chi tiết người dùng theo vai trò -->
+    <div class="mt-4">
+        <h6>Chi tiết theo vai trò</h6>
+        <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <th>Vai trò</th>
+                <th>Số lượng người dùng</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in user_stats %}
+            <tr>
+                <td>{{ row[0].name.title() }}</td>
+                <td>{{ row[1] }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% endif %}
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function changeReport(type) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('type', type);
+        window.location.href = url.toString();
+    }
+
+    {% if report_type == 'daily' %}
+    const ctx = document.getElementById('userChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels | tojson | safe }},
+            datasets: [{
+                label: 'Người dùng mới theo ngày',
+                data: {{ values | tojson | safe }},
+                backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: {
+                    display: true,
+                    text: 'Người dùng mới theo ngày'
+                }
+            }
+        }
+    });
+    {% elif report_type == 'role' %}
+    const ctxRole = document.getElementById('roleChart').getContext('2d');
+    new Chart(ctxRole, {
+        type: 'pie',
+        data: {
+            labels: {{ labels | tojson | safe }},
+            datasets: [{
+                label: 'Người dùng theo vai trò',
+                data: {{ values | tojson | safe }},
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Người dùng theo vai trò'
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}
