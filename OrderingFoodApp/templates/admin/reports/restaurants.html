@@ -1,0 +1,107 @@
+{% extends 'layout/base.html' %}
+{% block title %}Báo cáo nhà hàng{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Báo cáo nhà hàng</h2>
+
+    <!-- Dropdown chọn loại báo cáo -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label class="form-label">Loại báo cáo</label>
+            <select class="form-select" name="type" onchange="this.form.submit()">
+                <option value="daily" {{ 'selected' if report_type == 'daily' }}>Nhà hàng mới theo ngày</option>
+                <option value="status" {{ 'selected' if report_type == 'status' }}>Theo trạng thái</option>
+            </select>
+        </div>
+
+        {% if report_type == 'daily' %}
+        <div class="col-md-3">
+            <label class="form-label">Từ ngày</label>
+            <input type="date" class="form-control" name="start" value="{{ start }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Đến ngày</label>
+            <input type="date" class="form-control" name="end" value="{{ end }}">
+        </div>
+        <div class="col-md-3 align-self-end">
+            <button class="btn btn-primary" type="submit">Lọc</button>
+        </div>
+        {% endif %}
+    </form>
+
+    <!-- Nút xuất -->
+    <div class="mb-3">
+        <a href="{{ url_for('admin.export_restaurants_excel', start=start, end=end) }}" class="btn btn-success btn-sm">Xuất Excel</a>
+        <a href="#" class="btn btn-danger btn-sm disabled">Xuất PDF (Chưa hỗ trợ)</a>
+    </div>
+
+    <!-- Biểu đồ -->
+    <canvas id="restaurantChart" height="100"></canvas>
+
+    <!-- Bảng chi tiết -->
+    <div class="mt-4">
+        <h6>Chi tiết</h6>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    {% if report_type == 'daily' %}
+                        <th>Ngày</th>
+                        <th>Số lượng nhà hàng mới</th>
+                    {% elif report_type == 'status' %}
+                        <th>Trạng thái</th>
+                        <th>Số lượng nhà hàng</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in restaurant_stats %}
+                    <tr>
+                        <td>
+                            {% if report_type == 'daily' %}
+                                {{ row[0].strftime('%Y-%m-%d') }}
+                            {% else %}
+                                {{ row[0] }}
+                            {% endif %}
+                        </td>
+                        <td>{{ row[1] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p><strong>Tổng cộng: {{ total_restaurants }}</strong></p>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('restaurantChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: '{{ "bar" if report_type == "daily" else "pie" }}',
+        data: {
+            labels: {{ labels | tojson | safe }},
+            datasets: [{
+                label: '{{ "Nhà hàng mới theo ngày" if report_type == "daily" else "Phân loại theo trạng thái" }}',
+                data: {{ values | tojson | safe }},
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(255, 205, 86, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(153, 102, 255, 0.7)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: {
+                    display: true,
+                    text: '{{ "Nhà hàng mới theo ngày" if report_type == "daily" else "Tổng số nhà hàng theo trạng thái" }}'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

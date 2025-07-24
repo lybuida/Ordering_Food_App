@@ -4,10 +4,17 @@ from functools import wraps
 from flask import Blueprint, render_template, jsonify, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from flask_admin import Admin
+from flask import make_response
 
 from OrderingFoodApp.dao.restaurant_dao import *
 from OrderingFoodApp.models import *
-from OrderingFoodApp.dao import user_dao, restaurant_dao, order_owner
+from OrderingFoodApp.dao import user_dao, restaurant_dao, order_owner, reports_dao
+import io
+import pandas as pd
+from flask import send_file
+from datetime import datetime
+import csv
+
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -390,8 +397,6 @@ def edit_promo(promo_id):
 
     return render_template('admin/promos/edit.html', promo=promos)
 
-
-
 @admin_bp.route('/promos/<int:promo_id>/delete', methods=['POST'])
 @login_required
 def delete_promo(promo_id):
@@ -403,3 +408,242 @@ def delete_promo(promo_id):
     db.session.commit()
     flash('Xóa thành công.', 'success')
     return redirect(url_for('admin.promo_management'))
+
+# ==========================================================
+# ROUTES BÁO CÁO THỐNG KÊ (REPORTS MANAGEMENT)
+# ==========================================================
+
+@admin_bp.route('/reports')
+@admin_required
+def report_dashboard():
+    return render_template('admin/reports/dashboard.html')
+
+@admin_bp.route('/reports/users')
+@admin_required
+def user_report():
+    start = request.args.get('start')
+    end = request.args.get('end')
+    report_type = request.args.get('type', 'daily')  # Mặc định là daily
+
+    start_date = datetime.strptime(start, '%Y-%m-%d') if start else None
+    end_date = datetime.strptime(end, '%Y-%m-%d') if end else None
+
+    labels = []
+    values = []
+    total_users = 0
+    role_stats = []
+
+    if report_type == 'daily':
+        user_stats = reports_dao.get_user_registration_stats(start_date, end_date)
+        labels = [row[0].strftime('%Y-%m-%d') for row in user_stats]
+        values = [row[1] for row in user_stats]
+        total_users = sum(values)
+
+    elif report_type == 'role':
+        role_stats = reports_dao.get_user_count_by_role()
+        labels = [role.name.title() for role, _ in role_stats]
+        values = [count for _, count in role_stats]
+        total_users = sum(values)
+
+    return render_template(
+        'admin/reports/users.html',
+        report_type=report_type,
+        labels=labels,
+        values=values,
+        total_users=total_users,
+        start=start,
+        end=end,
+        role_stats=role_stats
+    )
+
+
+
+
+@admin_bp.route('/reports/restaurants')
+@admin_required
+def restaurant_report():
+    report_type = request.args.get('type', 'daily')
+    start = request.args.get('start')
+    end = request.args.get('end')
+
+    start_date = datetime.strptime(start, '%Y-%m-%d') if start else None
+    end_date = datetime.strptime(end, '%Y-%m-%d') if end else None
+
+    labels = []
+    values = []
+    total = 0
+
+    STATUS_DISPLAY = {
+        RestaurantApprovalStatus.APPROVED: 'Đã duyệt',
+        RestaurantApprovalStatus.PENDING: 'Chờ duyệt',
+        RestaurantApprovalStatus.REJECTED: 'Từ chối'
+    }
+
+    if report_type == 'daily':
+        stats = reports_dao.get_restaurant_registration_stats(start_date, end_date)
+        labels = [row[0].strftime('%Y-%m-%d') for row in stats]
+        values = [row[1] for row in stats]
+        total = sum(values)
+    elif report_type == 'status':
+        stats = reports_dao.get_restaurant_count_by_status()
+        labels = [STATUS_DISPLAY.get(status, str(status)) for status, _ in stats]  # ✅ dùng tên thân thiện
+        values = [count for _, count in stats]
+        total = sum(values)
+    else:
+        stats = []
+
+    return render_template(
+        'admin/reports/restaurants.html',
+        report_type=report_type,
+        start=start,
+        end=end,
+        labels=labels,
+        values=values,
+        total_restaurants=total,
+        restaurant_stats=stats
+    )
+
+@admin_bp.route('/reports/users/export/<export_format>')
+@admin_required
+def export_user_report(export_format):
+    user_stats = reports_dao.get_user_registration_stats()
+    role_stats = reports_dao.get_user_count_by_role()  # <- NEW
+
+    filename = f"user_report_{datetime.now().strftime('%Y%m%d')}.{export_format}"
+
+    if export_format == 'excel':
+        import pandas as pd
+        import io
+
+        df_daily = pd.DataFrame(user_stats, columns=["Ngày", "Số lượng người dùng"])
+        df_roles = pd.DataFrame(role_stats, columns=["Vai trò", "Số lượng"])
+
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df_daily.to_excel(writer, index=False, sheet_name='Theo ngày')
+            df_roles.to_excel(writer, index=False, sheet_name='Theo vai trò')
+
+        output.seek(0)
+        return send_file(output, download_name=filename, as_attachment=True)
+
+    elif export_format == 'pdf':
+        # Tạm thời xuất CSV làm PDF mẫu
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Ngày", "Số lượng người dùng"])
+        for row in user_stats:
+            writer.writerow([row[0], row[1]])
+
+        writer.writerow([])
+        writer.writerow(["Vai trò", "Số lượng"])
+        for row in role_stats:
+            writer.writerow([row[0], row[1]])
+
+        response = make_response(output.getvalue())
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-type"] = "text/csv"
+        return response
+
+    return "Định dạng không hợp lệ", 400
+
+@admin_bp.route('/reports/restaurants/export/excel')
+@admin_required
+def export_restaurants_excel():
+    start = request.args.get('start')
+    end = request.args.get('end')
+
+    start_date = datetime.strptime(start, '%Y-%m-%d') if start else None
+    end_date = datetime.strptime(end, '%Y-%m-%d') if end else None
+
+    data = reports_dao.get_restaurant_registration_stats(start_date, end_date)
+    df = pd.DataFrame(data)
+
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='RestaurantReport')
+
+    output.seek(0)
+    return send_file(output, download_name="restaurant_report.xlsx", as_attachment=True)
+
+@admin_bp.route('/reports/promos')
+@admin_required
+def promo_report():
+    report_type = request.args.get('type', 'daily')
+    start = request.args.get('start')
+    end = request.args.get('end')
+
+    start_date = datetime.strptime(start, '%Y-%m-%d') if start else None
+    end_date = datetime.strptime(end, '%Y-%m-%d') if end else None
+
+    labels = []
+    values = []
+    promo_stats = []
+    total_promos = 0
+
+    if report_type == 'daily':
+        promo_stats = reports_dao.get_promo_created_stats(start_date, end_date)
+        labels = [row[0].strftime('%Y-%m-%d') for row in promo_stats]
+        values = [row[1] for row in promo_stats]
+        total_promos = sum(values)
+
+    elif report_type == 'type':
+        promo_stats = reports_dao.get_promo_stats_by_type()
+        labels = [str(row[0].value) for row in promo_stats]  # Enum -> string
+        values = [row[1] for row in promo_stats]
+        total_promos = sum(values)
+
+    return render_template(
+        'admin/reports/promos.html',
+        labels=labels,
+        values=values,
+        total_promos=total_promos,
+        promo_stats=promo_stats,
+        start=start,
+        end=end,
+        report_type=report_type
+    )
+
+@admin_bp.route('/reports/promos/export/<export_format>')
+@admin_required
+def export_promo_report(export_format):
+    report_type = request.args.get('type', 'daily')
+    start = request.args.get('start')
+    end = request.args.get('end')
+
+    start_date = datetime.strptime(start, '%Y-%m-%d') if start else None
+    end_date = datetime.strptime(end, '%Y-%m-%d') if end else None
+
+    if report_type == 'daily':
+        promo_stats = reports_dao.get_promo_stats_by_day(start_date, end_date)
+        headers = ['Ngày', 'Số lượng mã']
+        rows = [(row[0].strftime('%Y-%m-%d'), row[1]) for row in promo_stats]
+    elif report_type == 'type':
+        promo_stats = reports_dao.get_promo_count_by_type()
+        headers = ['Loại giảm giá', 'Số lượng mã']
+        rows = [(row[0].value, row[1]) for row in promo_stats]
+    else:
+        return "Loại báo cáo không hợp lệ", 400
+
+    filename = f"promo_report_{report_type}_{datetime.now().strftime('%Y%m%d')}"
+
+    if export_format == 'excel':
+        df = pd.DataFrame(rows, columns=headers)
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='PromoReport')
+        output.seek(0)
+        return send_file(output, download_name=f"{filename}.xlsx", as_attachment=True)
+
+    elif export_format == 'pdf':
+        # Chỉ tạo bảng dạng text đơn giản (tuỳ chọn nâng cấp sau)
+        from flask import make_response
+        pdf_text = f"{headers[0]}\t{headers[1]}\n"
+        for row in rows:
+            pdf_text += f"{row[0]}\t{row[1]}\n"
+
+        response = make_response(pdf_text)
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}.txt'
+        response.headers['Content-Type'] = 'text/plain'
+        return response
+
+    return "Định dạng không hợp lệ", 400
