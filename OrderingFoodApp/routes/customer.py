@@ -3,9 +3,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from OrderingFoodApp.models import DiscountType
-
 from OrderingFoodApp.models import *
 from OrderingFoodApp.dao import customer_service as dao
+
 
 customer_bp = Blueprint('customer', __name__, url_prefix='/customer')
 
@@ -23,13 +23,14 @@ def index():
     ).all()
 
     # Lấy TẤT CẢ nhà hàng có đơn hàng (không giới hạn)
-    top_restaurants = db.session.query(
+    top_restaurants = (db.session.query(
         Restaurant,
         func.count(Order.id).label('order_count')
     ).outerjoin(Order, Order.restaurant_id == Restaurant.id) \
+        .filter(Restaurant.approval_status == RestaurantApprovalStatus.APPROVED)
         .group_by(Restaurant.id) \
         .order_by(func.count(Order.id).desc()) \
-        .all()
+        .all())
 
     # Lấy TẤT CẢ món ăn bán chạy (không giới hạn)
     top_menu_items = db.session.query(

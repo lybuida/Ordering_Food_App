@@ -3,6 +3,7 @@ from sqlalchemy import func
 from OrderingFoodApp.models import *
 from OrderingFoodApp import db
 from flask import request
+from datetime import datetime
 
 # Tìm kiếm nhà hàng theo TÊN NHÀ HÀNG
 def get_restaurants_by_name(search_query, page, per_page=12):
@@ -11,7 +12,7 @@ def get_restaurants_by_name(search_query, page, per_page=12):
         func.coalesce(func.avg(Review.rating), 0.0).label('avg_rating')
     ) \
         .outerjoin(Review, Review.restaurant_id == Restaurant.id) \
-        .filter(Restaurant.name.ilike(f'%{search_query}%')) \
+        .filter(Restaurant.name.ilike(f'%{search_query}%'), Restaurant.approval_status == RestaurantApprovalStatus.APPROVED) \
         .group_by(Restaurant.id) \
         .order_by(Restaurant.id) \
         .paginate(page=page, per_page=per_page)
@@ -62,7 +63,7 @@ def get_restaurants_by_category(category_id, page, per_page=12):
     ) \
         .join(MenuItem, Restaurant.id == MenuItem.restaurant_id) \
         .outerjoin(Review, Review.restaurant_id == Restaurant.id) \
-        .filter(MenuItem.category_id == category_id) \
+        .filter(MenuItem.category_id == category_id, Restaurant.approval_status == RestaurantApprovalStatus.APPROVED) \
         .group_by(Restaurant.id) \
         .order_by(Restaurant.id) \
         .paginate(page=page, per_page=per_page)
@@ -86,6 +87,7 @@ def get_all_restaurants(page, per_page=12):
         Restaurant,
         func.coalesce(func.avg(Review.rating), 0.0).label('avg_rating')
     ) \
+        .filter(Restaurant.approval_status == RestaurantApprovalStatus.APPROVED)\
         .outerjoin(Review, Review.restaurant_id == Restaurant.id) \
         .group_by(Restaurant.id) \
         .order_by(Restaurant.id) \
@@ -141,3 +143,88 @@ def get_orders_history(customer_id):
         .all()
 
     return orders
+
+def apply_promo(promo_code, total_price):
+    """Áp dụng mã giảm giá"""
+    promo = PromoCode.query.filter_by(code=promo_code).first()
+    if not promo:
+        return {'success': False, 'message': 'Mã giảm giá không tồn tại'}
+
+    current_time = datetime.now()
+    if current_time < promo.start_date or current_time > promo.end_date:
+        return {'success': False, 'message': 'Mã giảm giá đã hết hạn'}
+
+    discount_value = float(promo.discount_value)
+    if promo.discount_type == DiscountType.PERCENT:
+        discount_amount = total_price * (discount_value / 100)
+    else:  # FIXED
+        discount_amount = discount_value
+
+    # Đảm bảo không giảm quá tổng tiền
+    discount_amount = min(discount_amount, total_price)
+    final_amount = total_price - discount_amount
+
+    return {
+        'success': True,
+        'discount_amount': discount_amount,
+        'final_amount': final_amount
+    }
+
+def place_order(customer_id, order_data, checkout_data):
+    """Đặt hàng"""
+    if not checkout_data:
+        return {'success': False, 'message': 'Không có dữ liệu thanh toán'}
+
+    grouped_items = checkout_data['grouped_items']
+    total_amount = checkout_data['total_price']
+
+    # Lấy restaurant_id từ món đầu tiên
+    first_restaurant = next(iter(grouped_items.keys()))
+    first_item = grouped_items[first_restaurant][0]
+    menu_item = MenuItem.query.get(first_item['id'])
+    restaurant_id = menu_item.restaurant_id
+
+    # Xử lý mã giảm giá nếu có
+    promo_id = None
+    if order_data.get('applied_promo'):
+        promo = PromoCode.query.filter_by(code=order_data['applied_promo']['code']).first()
+        if promo:
+            promo_id = promo.id
+            total_amount = order_data['applied_promo']['final_amount']
+
+    # Tạo đơn hàng
+    new_order = Order(
+        customer_id=customer_id,
+        restaurant_id=restaurant_id,
+        promo_code_id=promo_id,
+        total_amount=total_amount,
+        status=OrderStatus.PENDING
+    )
+    db.session.add(new_order)
+    db.session.flush()
+
+    # Thêm các món vào đơn hàng
+    for restaurant, items in grouped_items.items():
+        for item in items:
+            order_item = OrderItem(
+                order_id=new_order.id,
+                menu_item_id=item['id'],
+                quantity=item['quantity'],
+                price=item['price']
+            )
+            db.session.add(order_item)
+
+    # Tạo thanh toán
+    payment = Payment(
+        order_id=new_order.id,
+        amount=total_amount,
+        method=PaymentMethod(order_data['payment_method']),
+        status=PaymentStatus.PENDING
+    )
+    db.session.add(payment)
+    db.session.commit()
+
+    return {
+        'success': True,
+        'order_id': new_order.id
+    }

@@ -16,12 +16,19 @@ Flask-SQLAlchemy==3.1.1
 Flask-WTF==1.2.1
 greenlet==3.2.3
 idna==3.10
+iniconfig==2.1.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
 Mako==1.3.10
 MarkupSafe==3.0.2
+-e git+https://github.com/lybuida/Ordering_Food_App.git@022cbc5be55fdfca04c2db5f341afbdfae2e6744#egg=OrderingFoodApp
+packaging==25.0
+pluggy==1.6.0
 pycparser==2.22
+Pygments==2.19.2
 PyMySQL==1.1.0
+pytest==8.4.1
+pytest-flask==1.3.0
 python-dotenv==1.0.1
 SQLAlchemy==2.0.41
 typing_extensions==4.14.1
