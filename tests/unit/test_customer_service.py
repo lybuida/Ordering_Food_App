@@ -20,11 +20,21 @@ def seed_data(app):
         category1 = MenuCategory(id=1, name="Món Chính", image_url=None)
         category2 = MenuCategory(id=2, name="Đồ Uống", image_url=None)
 
-        # Nhà hàng 1
-        r1 = Restaurant(id=1, owner_id=1, name="Quán Phở Hà Nội", address="Hanoi")
-        # Nhà hàng 2
-        r2 = Restaurant(id=2, owner_id=1, name="Bún Bò Huế", address="Hue")
-
+        # BỔ SUNG approval_status=RestaurantApprovalStatus.APPROVED
+        r1 = Restaurant(
+            id=1,
+            owner_id=1,
+            name="Quán Phở Hà Nội",
+            address="Hanoi",
+            approval_status=RestaurantApprovalStatus.APPROVED  # Thêm dòng này
+        )
+        r2 = Restaurant(
+            id=2,
+            owner_id=1,
+            name="Bún Bò Huế",
+            address="Hue",
+            approval_status=RestaurantApprovalStatus.APPROVED  # Thêm dòng này
+        )
         # Món ăn
         m1 = MenuItem(id=1, restaurant_id=1, category_id=1, name="Phở Bò", price=50000)
         m2 = MenuItem(id=2, restaurant_id=1, category_id=2, name="Trà Đá", price=10000)
