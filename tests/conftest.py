@@ -16,10 +16,9 @@ def app():
         'TESTING': True,
         # Chỉ điểm tới database test (tạo trước bằng Workbench)
         # 'SQLALCHEMY_DATABASE_URI': 'mysql+pymysql://root:password@127.0.0.1:3306/test_db',
-        'SQLALCHEMY_DATABASE_URI': 'mysql+pymysql://root:01676831139Chi%40@127.0.0.1:3306/test_db',
+        'SQLALCHEMY_DATABASE_URI': 'mysql+pymysql://root:26032004@localhost/test_db',
         'WTF_CSRF_ENABLED': False,
         'SECRET_KEY': 'test-secret',
-        'SERVER_NAME': 'test.local'
     })
 
     # Tạo toàn bộ bảng

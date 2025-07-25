@@ -665,7 +665,4 @@ def update_order_status(order_id):
 def owner_statistics():
     return render_template('owner/statistics.html')
 
-# ==========================================================
-# ROUTES QUẢN LÝ MÃ KHUYẾN MÃI (PROMO MANAGEMENT)
-# ==========================================================
 
