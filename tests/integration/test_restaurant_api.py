@@ -14,9 +14,23 @@ def seed_restaurant(app):
         c1 = MenuCategory(id=1, name="Món Chính", image_url=None)
         c2 = MenuCategory(id=2, name="Đồ Uống", image_url=None)
 
-        # Thêm nhiều nhà hàng
-        r1 = Restaurant(id=5, owner_id=1, name="Quán A", address="Hanoi", phone="0123")
-        r2 = Restaurant(id=6, owner_id=1, name="Nhà hàng B", address="HCM", phone="0124")
+        # Thêm nhiều nhà hàng - BỔ SUNG TRẠNG THÁI PHÊ DUYỆT
+        r1 = Restaurant(
+            id=5,
+            owner_id=1,
+            name="Quán A",
+            address="Hanoi",
+            phone="0123",
+            approval_status=RestaurantApprovalStatus.APPROVED  # Thêm dòng này
+        )
+        r2 = Restaurant(
+            id=6,
+            owner_id=1,
+            name="Nhà hàng B",
+            address="HCM",
+            phone="0124",
+            approval_status=RestaurantApprovalStatus.APPROVED  # Thêm dòng này
+        )
 
         # Thêm món ăn cho nhiều danh mục/nhà hàng
         m1 = MenuItem(id=100, restaurant_id=5, category_id=1, name="Phở gà", description="", price=30000)
