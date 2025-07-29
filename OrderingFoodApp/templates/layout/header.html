@@ -46,11 +46,12 @@
                 </li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('owner.owner_orders') }}">Đơn hàng</a></li>
                 <li class="nav-item"><a class="nav-link" href="/owner/reviews">Đánh giá</a></li>
+
                 {% elif current_user.role == UserRole.CUSTOMER %}
-                <li class="nav-item"><a class="nav-link" href="/customer/restaurants_list">Nhà hàng</a></li>
-                <li class="nav-item"><a class="nav-link" href="/customer/cart">Giỏ hàng</a></li>
-                <li class="nav-item"><a class="nav-link" href="/customer/current_orders">Đơn hàng</a></li>
-                <li class="nav-item"><a class="nav-link" href="/customer/orders">Lịch sử đơn</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/restaurants_list"><i class="fas fa-store-alt me-1"></i>Nhà hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/cart"><i class="fas fa-shopping-cart me-1" id="cartIcon"></i>Giỏ hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/current_orders"><i class="fas fa-clipboard-list me-1"></i>Trạng thái đơn hàng</a></li>
+                <li class="nav-item"><a class="nav-link" href="/customer/orders"><i class="fas fa-history me-1"></i>Lịch sử đơn</a></li>
                 {% endif %}
             </ul>
 

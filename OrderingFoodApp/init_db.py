@@ -3,7 +3,7 @@ from OrderingFoodApp.models import *
 from faker import Faker
 from werkzeug.security import generate_password_hash
 import random
-from datetime import datetime, timedelta  # Thêm import ở đầu file nếu chưa có
+from datetime import datetime, timedelta
 
 fake = Faker('vi_VN')
 

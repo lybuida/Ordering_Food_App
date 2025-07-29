@@ -142,7 +142,7 @@ class Restaurant(db.Model):
     longitude = Column(Float)
     image_url = Column(String(255))  # Thêm dòng này
     created_at = Column(DateTime, default=datetime.utcnow)
-    approval_status = Column(Enum(RestaurantApprovalStatus), nullable=False, default=RestaurantApprovalStatus.PENDING)
+    approval_status = Column(Enum(RestaurantApprovalStatus), nullable=False, default=RestaurantApprovalStatus.APPROVED)
     rejection_reason = Column(Text, nullable=True)  # Lưu lý do nếu bị từ chối
 
 
