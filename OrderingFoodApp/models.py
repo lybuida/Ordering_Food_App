@@ -24,7 +24,6 @@ class OrderStatus(enum):
 
 
 class PaymentMethod(enum):
-    CREDIT_CARD = "credit_card"
     MOMO = "momo"
     VNPAY = "vnpay"
     CASH_ON_DELIVERY = "cash_on_delivery"
