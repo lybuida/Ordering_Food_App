@@ -1,0 +1,235 @@
+{% extends "layout/base.html" %}
+{% block title %}Thống kê - Chủ Nhà Hàng{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3><i class="fas fa-chart-pie me-2"></i>Thống kê </h3>
+            </div>
+
+            <!-- Bộ lọc -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="restaurant_id" class="form-label">Nhà hàng</label>
+                            <select id="restaurant_id" name="restaurant_id" class="form-select">
+                                <option value="all">Tất cả nhà hàng</option>
+                                {% for r in restaurants %}
+                                <option value="{{ r.id }}" {% if r.id|string== current_restaurant_id %}selected{% endif
+                                        %}>{{ r.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="time_range" class="form-label">Khoảng thời gian</label>
+                            <select id="time_range" name="time_range" class="form-select">
+                                <option value="day" {% if time_range=='day' %}selected{% endif %}>Theo ngày</option>
+                                <option value="week" {% if time_range=='week' %}selected{% endif %}>Theo tuần</option>
+                                <option value="month" {% if time_range=='month' %}selected{% endif %}>Theo tháng</option>
+                                <option value="quarter" {% if time_range=='quarter' %}selected{% endif %}>Theo quý</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="start_date" class="form-label">Từ ngày</label>
+                            <input type="date" id="start_date" name="start_date" class="form-control"
+                                   value="{{ start_date if start_date else '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="end_date" class="form-label">Đến ngày</label>
+                            <input type="date" id="end_date" name="end_date" class="form-control"
+                                   value="{{ end_date if end_date else '' }}">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-1"></i>Lọc
+                            </button>
+                            <a href="{{ url_for('owner.advanced_statistics') }}" class="btn btn-outline-secondary ms-2">
+                                <i class="fas fa-sync-alt me-1"></i>Reset
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tổng quan -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <h5 class="text-primary">{{ statistics.total_orders }}</h5>
+                            <small class="text-muted">Tổng số đơn hàng</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <h5 class="text-success">{{ "{:,.0f}₫".format(statistics.total_revenue) }}</h5>
+                            <small class="text-muted">Tổng doanh thu</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <h5 class="text-info">{{ statistics.success_rate }}%</h5>
+                            <small class="text-muted">Tỉ lệ đơn thành công</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biểu đồ -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-chart-line me-2"></i>Biểu đồ doanh thu & đơn hàng
+                </div>
+                <div class="card-body">
+                    <div style="position: relative; height:300px; width:100%">
+                        <canvas id="statsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chi tiết theo trạng thái -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-list me-2"></i>Chi tiết theo trạng thái đơn hàng
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Trạng thái</th>
+                                <th class="text-end">Số lượng</th>
+                                <th class="text-end">Tỉ lệ</th>
+                                <th class="text-end">Doanh thu</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in statistics.by_status %}
+                            <tr>
+                                <td>
+                                        <span class="badge
+                                            {% if item.status == 'completed' %}bg-success
+                                            {% elif item.status == 'cancelled' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ item.status_display }}
+                                        </span>
+                                </td>
+                                <td class="text-end">{{ item.count }}</td>
+                                <td class="text-end">{{ item.percentage }}%</td>
+                                <td class="text-end">{{ "{:,.0f}₫".format(item.amount) }}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Biểu đồ thống kê
+        const ctx = document.getElementById('statsChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_data.labels|tojson }},
+                datasets: [
+                    {
+                        label: 'Số đơn hàng',
+                        data: {{ chart_data.orders|tojson }},
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Doanh thu (₫)',
+                        data: {{ chart_data.revenue|tojson }},
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        type: 'line',
+                        yAxisID: 'y1',
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Biểu đồ doanh thu và số lượng đơn hàng'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.datasetIndex === 0) {
+                                    label += context.raw + ' đơn';
+                                } else {
+                                    label += new Intl.NumberFormat('vi-VN', {
+                                        style: 'currency',
+                                        currency: 'VND'
+                                    }).format(context.raw);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Số đơn hàng'
+                        },
+                        beginAtZero: true
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Doanh thu (₫)'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('vi-VN', {
+                                    style: 'currency',
+                                    currency: 'VND'
+                                }).format(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
