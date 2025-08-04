@@ -39,13 +39,13 @@
                     <div class="row text-center">
                         <div class="col-md-4 mb-3">
                             <div class="p-3 border rounded bg-light">
-                                <h5 class="text-success">{{ orders_today }}</h5>
+                                <h5 class="text-success">{{ orders_in_today }}</h5>
                                 <small class="text-muted">Đơn hàng hôm nay</small>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
                             <div class="p-3 border rounded bg-light">
-                                <h5 class="text-primary">{{ "{:,.0f}₫".format(revenue_today) }}</h5>
+                                <h5 class="text-primary">{{ "{:,.0f}₫".format(revenue_in_today) }}</h5>
                                 <small class="text-muted">Doanh thu hôm nay</small>
                             </div>
                         </div>
@@ -56,8 +56,9 @@
                             </div>
                         </div>
                     </div>
-                    <a href="{{ url_for('owner.owner_statistics') }}" class="btn btn-outline-primary btn-sm mt-2"><i
-                            class="fas fa-chart-pie me-1"></i>Xem thống kê chi tiết</a>
+                    <a href="{{ url_for('owner.advanced_statistics') }}" class="btn btn-outline-primary btn-sm mt-2">
+                        <i class="fas fa-chart-pie me-1"></i>Xem thống kê chi tiết
+                    </a>
                 </div>
             </div>
         </div>

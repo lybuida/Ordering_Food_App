@@ -22,7 +22,7 @@ owner_bp = Blueprint('owner', __name__, url_prefix='/owner')
 
 
 ####HOME
-# owner.py
+
 @owner_bp.route('/')
 @login_required
 def index():
@@ -40,38 +40,38 @@ def index():
     # Lấy ngày hiện tại
     today = datetime.now().date()
 
-    # Đếm số đơn hôm nay (chỉ từ nhà hàng đã duyệt)
-    orders_today = db.session.query(Order).join(Restaurant).filter(
+    # Đếm số đơn hôm nay
+    orders_in_today = db.session.query(Order).join(Restaurant).filter(
         Restaurant.owner_id == current_user.id,
         Restaurant.id.in_(approved_restaurant_ids),
         Order.status == OrderStatus.COMPLETED,
-    func.date(Order.created_at) == today
+    func.date(Order.updated_at) == today
     ).count()
 
-    # Doanh thu hôm nay (chỉ từ nhà hàng đã duyệt)
-    revenue_today = db.session.query(func.sum(Order.total_amount)).join(Restaurant).filter(
+    # Doanh thu hôm nay
+    revenue_in_today = db.session.query(func.sum(Order.total_amount)).join(Restaurant).filter(
         Restaurant.owner_id == current_user.id,
         Restaurant.id.in_(approved_restaurant_ids),
-        func.date(Order.created_at) == today,
+        func.date(Order.updated_at) == today,
         Order.status == OrderStatus.COMPLETED
     ).scalar()
-    revenue_today = revenue_today or 0  # Tránh None
+    revenue_in_today = revenue_in_today or 0
 
-    # Đơn chờ xác nhận (chỉ từ nhà hàng đã duyệt)
+    # Đơn chờ xác nhận
     pending_orders = db.session.query(Order).join(Restaurant).filter(
         Restaurant.owner_id == current_user.id,
         Restaurant.id.in_(approved_restaurant_ids),
         Order.status == OrderStatus.PENDING
     ).count()
 
-    # Đơn mới nhất (5 đơn, chỉ từ nhà hàng đã duyệt)
+    # Đơn mới nhất
     new_orders = db.session.query(Order).join(Restaurant).filter(
         Restaurant.owner_id == current_user.id,
         Restaurant.id.in_(approved_restaurant_ids),
         Order.status == OrderStatus.PENDING
     ).order_by(Order.created_at.desc()).limit(5).all()
 
-    # Đánh giá mới (2 đánh giá, chỉ từ nhà hàng đã duyệt)
+    # Đánh giá mới
     recent_reviews = db.session.query(Review).join(Restaurant).filter(
         Restaurant.owner_id == current_user.id,
         Restaurant.id.in_(approved_restaurant_ids)
@@ -107,15 +107,14 @@ def index():
 
     return render_template('owner/index.html',
                            user=owner,
-                           orders_today=orders_today,
-                           revenue_today=revenue_today,
+                           orders_in_today= orders_in_today,
+                           revenue_in_today=revenue_in_today,
                            pending_orders=pending_orders,
                            new_orders=formatted_new_orders,
                            recent_reviews=formatted_reviews,
                            restaurants=restaurants,
                            approved_restaurants=approved_restaurants)
 
-##RES
 ### RESTAURANTS
 # ==========================================================
 # ROUTES QUẢN LÝ NHÀ HÀNG (RESTAURANT MANAGEMENT)
@@ -626,7 +625,7 @@ def owner_orders():
 @owner_bp.route('/orders/<int:order_id>')
 @login_required
 def order_details(order_id):
-    order = OrderDAO.get_order_details(order_id)  # Đây phải là dictionary đã xử lý
+    order = OrderDAO.get_order_details(order_id)
     if not order:
         return redirect(url_for('owner.owner_orders'))
 
@@ -661,8 +660,47 @@ def update_order_status(order_id):
 
 
 ##33##
-@owner_bp.route('/statistics')
-def owner_statistics():
-    return render_template('owner/statistics.html')
 
+@owner_bp.route('/statistics', methods=['GET'])
+@login_required
+def advanced_statistics():
+    """Trang thống kê nâng cao"""
+    # Lấy thông số lọc từ request
+    restaurant_id = request.args.get('restaurant_id', 'all')
+    time_range = request.args.get('time_range', 'month')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
 
+    # Lấy danh sách nhà hàng của owner
+    restaurants = Restaurant.query.filter_by(
+        owner_id=current_user.id,
+        approval_status=RestaurantApprovalStatus.APPROVED
+    ).all()
+
+    if not restaurants:
+        flash('Bạn chưa có nhà hàng nào được duyệt', 'warning')
+        return redirect(url_for('owner.index'))
+
+    # Lấy thống kê
+    stats = OrderDAO.get_advanced_statistics(
+        owner_id=current_user.id,
+        restaurant_id=restaurant_id if restaurant_id != 'all' else None,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+    # Lấy dữ liệu biểu đồ
+    chart_data = OrderDAO.get_time_series_statistics(
+        owner_id=current_user.id,
+        restaurant_id=restaurant_id if restaurant_id != 'all' else None,
+        time_range=time_range
+    )
+
+    return render_template('owner/statistics.html',
+                         statistics=stats,
+                         chart_data=chart_data,
+                         restaurants=restaurants,
+                         current_restaurant_id=restaurant_id,
+                         time_range=time_range,
+                         start_date=start_date,
+                         end_date=end_date)
