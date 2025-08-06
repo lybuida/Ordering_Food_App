@@ -7,7 +7,7 @@ from OrderingFoodApp.models import db, User, UserRole, Restaurant, PromoCode
 def count_users_by_month(start_date: datetime, end_date: datetime):
     """Thống kê số lượng người dùng mới theo tháng."""
     return db.session.query(
-        func.date_trunc('month', User.created_at).label('month'),
+        func.date_format(User.created_at, '%Y-%m').label('month'),
         func.count(User.id)
     ).filter(
         User.created_at >= start_date,
@@ -18,7 +18,7 @@ def count_users_by_month(start_date: datetime, end_date: datetime):
 def count_restaurants_by_month(start_date: datetime, end_date: datetime):
     """Thống kê số lượng nhà hàng được thêm mới theo tháng."""
     return db.session.query(
-        func.date_trunc('month', Restaurant.created_at).label('month'),
+        func.date_format(Restaurant.created_at, '%Y-%m').label('month'),
         func.count(Restaurant.id)
     ).filter(
         Restaurant.created_at >= start_date,
@@ -66,12 +66,14 @@ def get_user_registration_stats(start_date=None, end_date=None, group_by='day'):
     q = query(
         label.label('label'),
         func.count(User.id).label('user_count')
-    ).group_by(label).order_by(label)
+    ).select_from(User)
 
     if start_date:
         q = q.filter(User.created_at >= start_date)
     if end_date:
         q = q.filter(User.created_at <= end_date)
+
+    q = q.group_by(label).order_by(label)
 
     return q.all()
 
