@@ -5,6 +5,7 @@ from OrderingFoodApp import db
 from enum import Enum as enum
 from flask_login import UserMixin
 from sqlalchemy.ext.hybrid import hybrid_property
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 # ========== ENUMS ==========
@@ -24,6 +25,7 @@ class OrderStatus(enum):
 
 
 class PaymentMethod(enum):
+    CREDIT_CARD = "credit_card"
     MOMO = "momo"
     VNPAY = "vnpay"
     CASH_ON_DELIVERY = "cash_on_delivery"
@@ -65,6 +67,12 @@ class User(db.Model):
     phone = Column(String(20), nullable=True)
     # Quan hệ với Address
     addresses = relationship('Address', backref='user', lazy=True)
+
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
 
     @property
     def default_address(self):
