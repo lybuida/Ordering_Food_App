@@ -91,7 +91,6 @@
                         order.rj_reason }}</p>
                     {% endif %}
                 </div>
-
                 {% if order.status == 'pending' %}
                 <div>
                     <button class="btn btn-success me-2" onclick="updateOrderStatus({{ order.id }}, 'confirmed')">

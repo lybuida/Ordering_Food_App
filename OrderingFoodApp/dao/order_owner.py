@@ -73,48 +73,6 @@ class OrderDAO:
         }
         return status_map.get(status.value, status.value)
 
-    # @staticmethod
-    # def update_order_status(order_id, status):
-    #     order = Order.query.get(order_id)
-    #     if not order:
-    #         return False
-    #
-    #     # Kiểm tra luồng chuyển trạng thái hợp lệ
-    #     valid_transitions = {
-    #         'pending': ['confirmed', 'cancelled'],
-    #         'confirmed': ['preparing'],
-    #         'preparing': ['delivered'],
-    #         'delivered': ['completed']
-    #     }
-    #
-    #     current_status = order.status.value
-    #     if status not in valid_transitions.get(current_status, []):
-    #         return False
-    #
-    #     order.status = status
-    #     db.session.commit()
-    #
-    #     # Tạo thông báo cho khách hàng
-    #     status_messages = {
-    #         'confirmed': f"Đơn hàng #{order.id} đã được xác nhận",
-    #         'preparing': f"Đơn hàng #{order.id} đang được chuẩn bị",
-    #         'delivered': f"Đơn hàng #{order.id} đang trên đường giao đến bạn",
-    #         'completed': f"Đơn hàng #{order.id} đã hoàn thành",
-    #         'cancelled': f"Đơn hàng #{order.id} đã bị huỷ"
-    #     }
-    #
-    #     if status in status_messages:
-    #         notification = Notification(
-    #             user_id=order.customer_id,
-    #             type=NotificationType.ORDER_STATUS,
-    #             message=status_messages[status],
-    #             is_read=False
-    #         )
-    #         db.session.add(notification)
-    #         db.session.commit()
-    #
-    #     return True
-
 
     @staticmethod
     def update_order_status(order_id, status, rj_reason=None):
