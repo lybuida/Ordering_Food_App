@@ -5,18 +5,27 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="fas fa-receipt me-2"></i>Quản lý Đơn Hàng</h3>
         <div class="btn-group">
-            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                    aria-expanded="false">
                 <i class="fas fa-filter me-1"></i>Lọc theo trạng thái
             </button>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders') }}">Tất cả</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='pending') }}">Chờ xác nhận</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='confirmed') }}">Đã xác nhận</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='preparing') }}">Đang chuẩn bị</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='delivered') }}">Đang giao hàng</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='completed') }}">Hoàn thành</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='cancelled') }}">Đã huỷ</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='pending') }}">Chờ xác
+                    nhận</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='confirmed') }}">Đã xác
+                    nhận</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='preparing') }}">Đang chuẩn
+                    bị</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='delivered') }}">Đang giao
+                    hàng</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='completed') }}">Hoàn
+                    thành</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('owner.owner_orders', status='cancelled') }}">Đã huỷ</a>
+                </li>
             </ul>
         </div>
     </div>
@@ -30,7 +39,8 @@
                 <div class="row">
                     <div class="col-md-3 mb-3">
                         <label class="form-label">Từ ngày</label>
-                        <input type="date" class="form-control" name="start_date" value="{{ filter_values.start_date }}">
+                        <input type="date" class="form-control" name="start_date"
+                               value="{{ filter_values.start_date }}">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label class="form-label">Đến ngày</label>
@@ -41,7 +51,8 @@
                         <select class="form-select" name="branch_id">
                             <option value="">Tất cả chi nhánh</option>
                             {% for restaurant in restaurants %}
-                            <option value="{{ restaurant.id }}" {% if filter_values.branch_id == restaurant.id|string %}selected{% endif %}>
+                            <option value="{{ restaurant.id }}" {% if filter_values.branch_id== restaurant.id|string
+                                    %}selected{% endif %}>
                                 {{ restaurant.name }}
                             </option>
                             {% endfor %}
@@ -62,58 +73,61 @@
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
-                        <tr>
-                            <th>Mã đơn</th>
-                            <th>Thời gian</th>
-                            <th>Khách hàng</th>
-                            <th>Số món</th>
-                            <th>Tổng tiền</th>
-                            <th>Trạng thái</th>
-                            <th>Hành động</th>
-                        </tr>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Thời gian</th>
+                        <th>Khách hàng</th>
+                        <th>Số món</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        {% for order in orders %}
-                        <tr>
-                            <td><a href="{{ url_for('owner.order_details', order_id=order.id) }}">{{ order.code }}</a></td>
-                            <td>{{ order.created_at }}</td>
-                            <td>{{ order.customer_name }}</td>
-                            <td>{{ order.item_count }}</td>
-                            <td>{{ "{:,.0f}₫".format(order.total_amount) }}</td>
-                            <td>
-                                {% if order.status == 'pending' %}
-                                <span class="badge bg-warning">{{ order.status_display }}</span>
-                                {% elif order.status == 'confirmed' %}
-                                <span class="badge bg-primary">{{ order.status_display }}</span>
-                                {% elif order.status == 'preparing' %}
-                                <span class="badge bg-info">{{ order.status_display }}</span>
-                                {% elif order.status == 'delivered' %}
-                                <span class="badge bg-success">{{ order.status_display }}</span>
-                                {% elif order.status == 'completed' %}
-                                <span class="badge bg-success">{{ order.status_display }}</span>
-                                {% elif order.status == 'cancelled' %}
-                                <span class="badge bg-danger">{{ order.status_display }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <a href="{{ url_for('owner.order_details', order_id=order.id) }}" class="btn btn-sm btn-primary me-1">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                {% if order.status == 'pending' %}
-                                <button class="btn btn-sm btn-success me-1" onclick="updateOrderStatus({{ order.id }}, 'confirmed', this)">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="updateOrderStatus({{ order.id }}, 'cancelled', this)">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="7" class="text-center">Không có đơn hàng nào</td>
-                        </tr>
-                        {% endfor %}
+                    {% for order in orders %}
+                    <tr>
+                        <td><a href="{{ url_for('owner.order_details', order_id=order.id) }}">{{ order.code }}</a></td>
+                        <td>{{ order.created_at }}</td>
+                        <td>{{ order.customer_name }}</td>
+                        <td>{{ order.item_count }}</td>
+                        <td>{{ "{:,.0f}₫".format(order.total_amount) }}</td>
+                        <td>
+                            {% if order.status == 'pending' %}
+                            <span class="badge bg-warning">{{ order.status_display }}</span>
+                            {% elif order.status == 'confirmed' %}
+                            <span class="badge bg-primary">{{ order.status_display }}</span>
+                            {% elif order.status == 'preparing' %}
+                            <span class="badge bg-info">{{ order.status_display }}</span>
+                            {% elif order.status == 'delivered' %}
+                            <span class="badge bg-success">{{ order.status_display }}</span>
+                            {% elif order.status == 'completed' %}
+                            <span class="badge bg-success">{{ order.status_display }}</span>
+                            {% elif order.status == 'cancelled' %}
+                            <span class="badge bg-danger">{{ order.status_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('owner.order_details', order_id=order.id) }}"
+                               class="btn btn-sm btn-primary me-1">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if order.status == 'pending' %}
+                            <button class="btn btn-sm btn-success me-1"
+                                    onclick="updateOrderStatus({{ order.id }}, 'confirmed', this)">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger"
+                                    onclick="updateOrderStatus({{ order.id }}, 'cancelled', this)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">Không có đơn hàng nào</td>
+                    </tr>
+                    {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -161,40 +175,161 @@
     </div>
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <script>
-function updateOrderStatus(orderId, status, button) {
-    if (status === 'cancelled' && !confirm('Bạn có chắc chắn muốn huỷ đơn hàng này?')) {
-        return;
-    }
+    function updateOrderStatus(orderId, status, button) {
+        if (status === 'cancelled') {
+            // Hiển thị form nhập lý do chuyên nghiệp
+            Swal.fire({
+                title: 'Xác nhận hủy đơn hàng',
+                html: `<textarea id="swal-reason" class="swal2-textarea" placeholder="Vui lòng nhập lý do hủy đơn hàng..." required></textarea>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận hủy',
+                cancelButtonText: 'Quay lại',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const reason = document.getElementById('swal-reason').value;
+                    if (!reason) {
+                        Swal.showValidationMessage('Vui lòng nhập lý do hủy');
+                        return false;
+                    }
+                    return reason;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Disable button trong khi xử lý
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    }
 
-    // Disable button during processing
-    button.disabled = true;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-    fetch(`/owner/orders/${orderId}/update-status`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `status=${status}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            window.location.reload();
+                    fetch(`/owner/orders/${orderId}/update-status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `status=${status}&rejection_reason=${encodeURIComponent(result.value)}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: data.message,
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => window.location.reload());
+                        } else {
+                            Swal.fire('Lỗi', data.message, 'error');
+                            if (button) {
+                                button.disabled = false;
+                                button.innerHTML = '<i class="fas fa-times"></i>';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire('Lỗi', 'Có lỗi xảy ra khi cập nhật trạng thái', 'error');
+                        if (button) {
+                            button.disabled = false;
+                            button.innerHTML = '<i class="fas fa-times"></i>';
+                        }
+                    });
+                }
+            });
         } else {
-            alert(data.message);
-            button.disabled = false;
-            button.innerHTML = status === 'confirmed' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
+            // Xác nhận thông thường cho các trạng thái khác
+            Swal.fire({
+                title: 'Xác nhận thao tác?',
+                text: `Bạn chắc chắn muốn ${status === 'confirmed' ? 'xác nhận' : 'cập nhật trạng thái'} đơn hàng này?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Quay lại'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Disable button trong khi xử lý
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    }
+
+                    fetch(`/owner/orders/${orderId}/update-status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `status=${status}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: data.message,
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => window.location.reload());
+                        } else {
+                            Swal.fire('Lỗi', data.message, 'error');
+                            if (button) {
+                                button.disabled = false;
+                                button.innerHTML = status === 'confirmed' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire('Lỗi', 'Có lỗi xảy ra khi cập nhật trạng thái', 'error');
+                        if (button) {
+                            button.disabled = false;
+                            button.innerHTML = status === 'confirmed' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
+                        }
+                    });
+                }
+            });
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Có lỗi xảy ra khi cập nhật trạng thái');
-        button.disabled = false;
-        button.innerHTML = status === 'confirmed' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
-    });
-}
+    }
 </script>
+
+<style>
+.custom-swal-popup {
+    border-radius: 12px !important;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.2) !important;
+}
+
+.custom-swal-title {
+    color: #d33 !important;
+    padding-bottom: 15px !important;
+    border-bottom: 1px solid #eee !important;
+}
+
+.custom-swal-content {
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+}
+
+.custom-swal-actions {
+    margin-top: 25px !important;
+    justify-content: center !important;
+}
+
+.swal2-styled.swal2-confirm {
+    padding: 10px 25px !important;
+    font-size: 15px !important;
+    border-radius: 8px !important;
+}
+
+.swal2-styled.swal2-cancel {
+    padding: 10px 25px !important;
+    font-size: 15px !important;
+    border-radius: 8px !important;
+    margin-right: 15px !important;
+}
+</style>
 {% endblock %}

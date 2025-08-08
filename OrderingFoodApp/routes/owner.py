@@ -636,11 +636,11 @@ def order_details(order_id):
 
     return render_template('owner/order_details.html', order=order)  # Truyền dictionary
 
-
 @owner_bp.route('/orders/<int:order_id>/update-status', methods=['POST'])
 @login_required
 def update_order_status(order_id):
     status = request.form.get('status')
+    rj_reason = request.form.get('rejection_reason')
 
     # Kiểm tra quyền
     order = Order.query.get(order_id)
@@ -651,8 +651,12 @@ def update_order_status(order_id):
     if restaurant.owner_id != current_user.id:
         return jsonify({'success': False, 'message': 'Không có quyền thực hiện'})
 
+    # Kiểm tra nếu là hủy đơn thì phải có lý do
+    if status == 'cancelled' and not rj_reason:
+        return jsonify({'success': False, 'message': 'Vui lòng nhập lý do hủy đơn'})
+
     # Cập nhật trạng thái
-    success = OrderDAO.update_order_status(order_id, status)
+    success = OrderDAO.update_order_status(order_id, status, rj_reason)
     if success:
         return jsonify({'success': True, 'message': 'Cập nhật trạng thái thành công'})
     else:
