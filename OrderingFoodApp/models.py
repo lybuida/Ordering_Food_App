@@ -231,6 +231,8 @@ class Order(db.Model):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    rj_reason = Column(Text, nullable=True)
+
     order_items = relationship('OrderItem', backref='order', lazy=True)
     payment = relationship('Payment', backref='order', uselist=False)
 

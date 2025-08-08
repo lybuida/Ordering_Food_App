@@ -73,8 +73,9 @@ class OrderDAO:
         }
         return status_map.get(status.value, status.value)
 
+
     @staticmethod
-    def update_order_status(order_id, status):
+    def update_order_status(order_id, status, rj_reason=None):
         order = Order.query.get(order_id)
         if not order:
             return False
@@ -82,7 +83,7 @@ class OrderDAO:
         # Kiểm tra luồng chuyển trạng thái hợp lệ
         valid_transitions = {
             'pending': ['confirmed', 'cancelled'],
-            'confirmed': ['preparing', 'cancelled'],
+            'confirmed': ['preparing'],
             'preparing': ['delivered'],
             'delivered': ['completed']
         }
@@ -92,6 +93,8 @@ class OrderDAO:
             return False
 
         order.status = status
+        if status == 'cancelled' and rj_reason:
+            order.rj_reason = rj_reason
         db.session.commit()
 
         # Tạo thông báo cho khách hàng
@@ -100,7 +103,7 @@ class OrderDAO:
             'preparing': f"Đơn hàng #{order.id} đang được chuẩn bị",
             'delivered': f"Đơn hàng #{order.id} đang trên đường giao đến bạn",
             'completed': f"Đơn hàng #{order.id} đã hoàn thành",
-            'cancelled': f"Đơn hàng #{order.id} đã bị huỷ"
+            'cancelled': f"Đơn hàng #{order.id} đã bị huỷ. Lý do: {rj_reason or 'Không có lý do'}"
         }
 
         if status in status_messages:
