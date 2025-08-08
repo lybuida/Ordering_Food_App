@@ -160,7 +160,7 @@ class OrderDAO:
 
         return order_details
 
-    ###########3#####Doanh thu
+    ###########3#####Doanh thu###
     @staticmethod
     def get_advanced_statistics(owner_id, restaurant_id=None, start_date=None, end_date=None):
         """Lấy thống kê nâng cao cho chủ nhà hàng (CHỈ tính doanh thu từ đơn COMPLETED)"""

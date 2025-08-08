@@ -3,6 +3,13 @@
 import os
 import pytest
 from flask import Flask
+import sys
+from pathlib import Path
+
+# Thêm thư mục gốc vào PYTHONPATH
+root_dir = Path(__file__).parent.parent
+sys.path.append(str(root_dir))
+
 from OrderingFoodApp import init_app, db
 
 
@@ -16,8 +23,9 @@ def app():
     app.config.update({
         'TESTING': True,
         # Chỉ điểm tới database test (tạo trước bằng Workbench)
-        # 'SQLALCHEMY_DATABASE_URI': 'mysql+pymysql://root:password@127.0.0.1:3306/test_db',
-        'SQLALCHEMY_DATABASE_URI': 'mysql+pymysql://root:26032004@127.0.0.1:3306/test_db',
+        'SQLALCHEMY_DATABASE_URI': 'mysql+pymysql://root:password@127.0.0.1:3306/test_db',
+        # 'SQLALCHEMY_DATABASE_URI': 'mysql+pymysql://root:26032004@localhost/test_db?charset=utf8mb4',
+        # 'SQLALCHEMY_DATABASE_URI' = 'mysql+pymysql://username:password@localhost:3306/test_db',
         'WTF_CSRF_ENABLED': False,
         'SECRET_KEY': 'test-secret',
     })

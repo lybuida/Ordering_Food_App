@@ -230,7 +230,6 @@ class Order(db.Model):
     status = Column(Enum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
     rj_reason = Column(Text, nullable=True)
 
     order_items = relationship('OrderItem', backref='order', lazy=True)
