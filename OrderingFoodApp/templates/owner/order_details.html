@@ -91,6 +91,7 @@
                         order.rj_reason }}</p>
                     {% endif %}
                 </div>
+
                 {% if order.status == 'pending' %}
                 <div>
                     <button class="btn btn-success me-2" onclick="updateOrderStatus({{ order.id }}, 'confirmed')">
@@ -105,9 +106,9 @@
                     <button class="btn btn-info me-2" onclick="updateOrderStatus({{ order.id }}, 'preparing')">
                         <i class="fas fa-utensils me-1"></i> Bắt đầu chuẩn bị
                     </button>
-                    <button class="btn btn-danger" onclick="updateOrderStatus({{ order.id }}, 'cancelled')">
-                        <i class="fas fa-times me-1"></i> Huỷ đơn
-                    </button>
+<!--                    <button class="btn btn-danger" onclick="updateOrderStatus({{ order.id }}, 'cancelled')">-->
+<!--                        <i class="fas fa-times me-1"></i> Huỷ đơn-->
+<!--                    </button>-->
                 </div>
                 {% elif order.status == 'preparing' %}
                 <button class="btn btn-success" onclick="updateOrderStatus({{ order.id }}, 'delivered')">
@@ -123,62 +124,160 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <script>
-
-    function updateOrderStatus(orderId, status) {
+    function updateOrderStatus(orderId, status, button) {
         if (status === 'cancelled') {
-            const reason = prompt('Vui lòng nhập lý do hủy đơn hàng:');
-            if (!reason) {
-                return;
-            }
-
-            if (!confirm('Bạn có chắc chắn muốn huỷ đơn hàng này?')) {
-                return;
-            }
-
-            fetch(`/owner/orders/${orderId}/update-status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `status=${status}&rejection_reason=${encodeURIComponent(reason)}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    window.location.reload();
-                } else {
-                    alert(data.message);
+            // Hiển thị form nhập lý do chuyên nghiệp
+            Swal.fire({
+                title: 'Xác nhận hủy đơn hàng',
+                html: `<textarea id="swal-reason" class="swal2-textarea" placeholder="Vui lòng nhập lý do hủy đơn hàng..." required></textarea>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận hủy',
+                cancelButtonText: 'Quay lại',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const reason = document.getElementById('swal-reason').value;
+                    if (!reason) {
+                        Swal.showValidationMessage('Vui lòng nhập lý do hủy');
+                        return false;
+                    }
+                    return reason;
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi cập nhật trạng thái');
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Disable button trong khi xử lý
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    }
+
+                    fetch(`/owner/orders/${orderId}/update-status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `status=${status}&rejection_reason=${encodeURIComponent(result.value)}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: data.message,
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => window.location.reload());
+                        } else {
+                            Swal.fire('Lỗi', data.message, 'error');
+                            if (button) {
+                                button.disabled = false;
+                                button.innerHTML = '<i class="fas fa-times"></i>';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire('Lỗi', 'Có lỗi xảy ra khi cập nhật trạng thái', 'error');
+                        if (button) {
+                            button.disabled = false;
+                            button.innerHTML = '<i class="fas fa-times"></i>';
+                        }
+                    });
+                }
             });
         } else {
-            fetch(`/owner/orders/${orderId}/update-status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `status=${status}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    window.location.reload();
-                } else {
-                    alert(data.message);
+            // Xác nhận thông thường cho các trạng thái khác
+            Swal.fire({
+                title: 'Xác nhận thao tác?',
+                text: `Bạn chắc chắn muốn ${status === 'confirmed' ? 'xác nhận' : 'cập nhật trạng thái'} đơn hàng này?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Quay lại'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Disable button trong khi xử lý
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    }
+
+                    fetch(`/owner/orders/${orderId}/update-status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `status=${status}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Thành công!',
+                                text: data.message,
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => window.location.reload());
+                        } else {
+                            Swal.fire('Lỗi', data.message, 'error');
+                            if (button) {
+                                button.disabled = false;
+                                button.innerHTML = status === 'confirmed' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire('Lỗi', 'Có lỗi xảy ra khi cập nhật trạng thái', 'error');
+                        if (button) {
+                            button.disabled = false;
+                            button.innerHTML = status === 'confirmed' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
+                        }
+                    });
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi cập nhật trạng thái');
             });
         }
     }
-
 </script>
+
+<style>
+.custom-swal-popup {
+    border-radius: 12px !important;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.2) !important;
+}
+
+.custom-swal-title {
+    color: #d33 !important;
+    padding-bottom: 15px !important;
+    border-bottom: 1px solid #eee !important;
+}
+
+.custom-swal-content {
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+}
+
+.custom-swal-actions {
+    margin-top: 25px !important;
+    justify-content: center !important;
+}
+
+.swal2-styled.swal2-confirm {
+    padding: 10px 25px !important;
+    font-size: 15px !important;
+    border-radius: 8px !important;
+}
+
+.swal2-styled.swal2-cancel {
+    padding: 10px 25px !important;
+    font-size: 15px !important;
+    border-radius: 8px !important;
+    margin-right: 15px !important;
+}
+</style>
 {% endblock %}
